@@ -5,6 +5,11 @@ package p1_model_view;
 **/
 public class NetworkNode 
 {
+	private String nodeName;
+	private double xCenter;
+	private double yCenter;
+	private NetworkModel networkModel;
+	
 	/**
 	* Creates a network node
 	* @param nodeName the name that the node will be identified by. Names are exact
@@ -13,14 +18,17 @@ public class NetworkNode
 	* @param yCenter the Y coordinate of the center of the node in pixels
 	*/
 	public NetworkNode(String nodeName, double xCenter, double yCenter)
-	{}
+	{
+		setName(nodeName);
+		setLocation(xCenter, yCenter);
+	}
 	
 	/**
 	* @return name of the node
 	*/
 	public String getName()
 	{
-		return null;
+		return this.nodeName;
 	}
 
 	/**
@@ -28,14 +36,16 @@ public class NetworkNode
 	* @param newName
 	*/
 	public void setName(String newName)
-	{}
+	{
+		this.nodeName = newName;
+	}
 
 	/**
 	* @return the X coordinate of the center of the node
 	*/
 	public double getX()
 	{
-		return 0;
+		return this.xCenter;
 	}
 	
 	/**
@@ -43,14 +53,17 @@ public class NetworkNode
 	*/
 	public double getY()
 	{
-		return 0;
+		return this.yCenter;
 	}
 	
 	/**
 	* Changes the location of the center of the node
 	*/
 	public void setLocation(double xCenter, double yCenter)
-	{}
+	{
+		this.xCenter = xCenter;
+		this.yCenter = yCenter;
+	}
 
 	/**
 	* Sets a reference to the network model that this node belongs to
@@ -58,15 +71,23 @@ public class NetworkNode
 	*/
 	public void setNetwork(NetworkModel network)
 	{
-		
+		this.networkModel = network;
 	}
+	
 	/**
 	* @return the network that this node belongs to
 	*/
 	public NetworkModel getNetwork()
 	{
-		return null;
+		return this.networkModel;
 		
 	}
 
+	/**
+	 * @return "N x y name"
+	 */
+	public String toString()
+	{
+		return "N "+String.valueOf(xCenter)+" "+String.valueOf(yCenter)+" "+nodeName;
+	}
 }
