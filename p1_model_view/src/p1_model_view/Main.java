@@ -7,6 +7,8 @@ public class Main
 {
 	public static void main(String[] args) 
 	{
+		NetworkModel.Test();
+		
 		System.out.println("Model View");
 		
 		//TODO parse the file and create NetworkModel object from it.

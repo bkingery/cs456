@@ -1,6 +1,7 @@
 package p1_model_view;
 
 import java.io.*;
+import java.net.URL;
 import java.util.*;
 
 import p1_model_view.NetworkConnection.Side;
@@ -38,7 +39,7 @@ public class NetworkModel
 	{
 		setFileName(fileName);
 		parseFile(fileName);
-		save();
+		this.unsavedChanges = false;
 	}
 	
 	private void parseFile(String fileName) throws FileNotFoundException
@@ -49,32 +50,37 @@ public class NetworkModel
 		while (s.hasNext())
 		{
 			String line = s.nextLine();
-			String[] tokens = line.split(" ");
-			if (tokens[0].compareTo("N") == 0)
-				parseNetworkNode(tokens);
-			else if (tokens[0].compareTo("C") == 0)
-				parseNetworkConnection(tokens);
+			if (line.charAt(0) == 'N')
+				parseNetworkNode(line);
+			else if (line.charAt(0) == 'C')
+				parseNetworkConnection(line);
 		}
 		
 		s.close();
 	}
 	
-	private void parseNetworkNode(String[] tokens)
+	private void parseNetworkNode(String line)
 	{
-		String nodeName = tokens[3];
-		double xCenter	= Double.parseDouble(tokens[1]);
-		double yCenter = Double.parseDouble(tokens[2]);
+		String [] tokens  = line.split("\"*\"");
+		String [] coordinates = tokens[0].split(" ");
+		String nodeName = tokens[1];
+		double xCenter	= Double.parseDouble(coordinates[1]);
+		double yCenter = Double.parseDouble(coordinates[2]);
 		NetworkNode n = new NetworkNode(nodeName, xCenter, yCenter);
+//		System.out.println(n.toString());
 		this.addNode(n);
 	}
 	
-	private void parseNetworkConnection(String[] tokens)
+	private void parseNetworkConnection(String line)
 	{
+		String [] tokens = line.split("\"*\"");
+//		System.out.println(Arrays.toString(tokens));
 		String node1 = tokens[1];
 		Side side1 = Side.fromString(tokens[2]);
 		String node2 = tokens[3];
 		Side side2 = Side.fromString(tokens[4]);
 		NetworkConnection c = new NetworkConnection(node1, side1, node2, side2);
+		System.out.println(c.toString());
 		this.addConnection(c);
 	}
 	
@@ -93,7 +99,6 @@ public class NetworkModel
 	public void setFileName(String newFileName)
 	{
 		this.fileName = newFileName;
-		System.out.println("Set fileName to:: "+this.fileName);
 	}
 	
 	/**
@@ -155,11 +160,22 @@ public class NetworkModel
 
 	/**
 	 * Removes the specified object from the list of nodes.
+	 * Also removes any connections to the removed node.
 	 * @param i the index of the object to be removed.
 	 */
 	public void removeNode(int i)
 	{
-		this.nodeList.remove(i);
+		NetworkNode n = this.nodeList.remove(i);
+		
+		for (int x=0; x<this.conList.size(); x++)
+		{
+			NetworkConnection c = this.conList.get(x);
+			if (c.getNode1().compareTo(n.getName())==0 || c.getNode2().compareTo(n.getName())==0)
+			{
+				removeConnection(x);
+			}
+		}
+		
 		this.unsavedChanges = true;
 	}
 	
@@ -211,8 +227,245 @@ public class NetworkModel
 	**/
 	public static void Test()
 	{
+		boolean result = true;
 		System.out.println("testing NetworkModel");
 		
+		result &= testConstructors();
+		
+		try {
+			result &= testGetFileName();
+			result &= testSetFileName();
+			result &= testSave();
+			result &= testUnsavedChanges();
+			result &= testAddNode();
+			result &= testnNodes();
+			result &= testGetNode();
+			result &= testRemoveNode();
+			result &= testAddConnection();
+			result &= testnConnections();
+			result &= testGetConnection();
+			result &= testRemoveConnection();
+			
+			//TODO
+			
+		} catch (FileNotFoundException | UnsupportedEncodingException e) {
+			e.printStackTrace();
+			result = false;
+		}
+		
+		if (result)
+			System.out.println("NetworkModel OK");
+	}
+
+	private static boolean testConstructors()
+	{
+		boolean result = true;
+		
+		try {
+			NetworkModel nm1 = new NetworkModel("test\\test.txt");
+		} catch (Exception e) {
+			e.printStackTrace();
+			result = false;
+		}
+		
+		try {
+			NetworkModel nm2 = new NetworkModel("bad_file");
+			System.out.println("Exception not thrown for bad filename");
+			result = false;
+		} catch (FileNotFoundException e) {
+			// Should throw this exception.
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+			result = false;
+		}
+		
+		return result;
+	}
+
+	private static boolean testGetFileName() throws FileNotFoundException, UnsupportedEncodingException
+	{
+		boolean result = true;
+		
+		NetworkModel nm1 = new NetworkModel("test\\test.txt");
+		if (nm1.getFileName().compareTo("test\\test.txt")!=0)
+		{
+			System.out.println("Failed: getFileName");
+			System.out.println("Should be: test.txt");
+			System.out.println("Actual: "+nm1.getFileName());
+			result = false;
+		}
+		
+		return result;
+	}
+
+	private static boolean testSetFileName() throws FileNotFoundException, UnsupportedEncodingException
+	{
+		boolean result = true;
+
+		NetworkModel nm1 = new NetworkModel("test\\test.txt");
+		nm1.setFileName("new.txt");
+		if (nm1.getFileName().compareTo("new.txt")!=0)
+		{
+			System.out.println("Failed: setFileName");
+			result = false;
+		}
+
+		return result;
+	}
+	
+	
+	private static boolean testSave()
+	{
+		//TODO
+		return true;
+	}
+	
+	
+	private static boolean testUnsavedChanges() throws FileNotFoundException, UnsupportedEncodingException
+	{
+		boolean result = true;
+		NetworkModel nm1 = new NetworkModel("test\\test.txt");
+		
+		if (nm1.unsavedChanges())
+		{
+			System.out.println("Failed: unsavedChanges");
+			result = false;
+		}
+		NetworkNode n = new NetworkNode("test", 0, 0);
+		nm1.addNode(n);
+		if (!nm1.unsavedChanges())
+		{
+			System.out.println("Failed: unsavedChanges");
+			result = false;
+		}
+		
+		return result;
+	}
+
+	private static boolean testAddNode() throws FileNotFoundException, UnsupportedEncodingException
+	{
+		boolean result = true;
+		NetworkModel nm1 = new NetworkModel();
+		NetworkNode n1 = new NetworkNode("test1", 0,0);
+		NetworkNode n2 = new NetworkNode("test2", 10,10);
+		nm1.addNode(n1);
+		nm1.addNode(n2);
+		if (nm1.nNodes() != 2)
+		{
+			System.out.println("Failed: addNode");
+			result = false;
+		}
+		
+		return result;
+	}
+
+	private static boolean testnNodes() throws FileNotFoundException, UnsupportedEncodingException
+	{
+		boolean result = true;
+		NetworkModel nm1 = new NetworkModel("test\\test.txt");
+		if (nm1.nNodes() != 2)
+		{
+			System.out.println("Failed: nNodes");
+			result = false;
+		}
+		nm1.addNode(new NetworkNode("test1", 0,0));
+		if (nm1.nNodes() != 3)
+		{
+			System.out.println("Failed: nNodes");
+			result = false;
+		}
+		return result;
+	}
+
+	private static boolean testGetNode() throws FileNotFoundException, UnsupportedEncodingException
+	{
+		boolean result = true;
+		NetworkModel nm1 = new NetworkModel("test\\test.txt");
+		if (nm1.getNode(0).getName().compareTo("\"Central\"")!=0)
+		{
+			System.out.println("Failed: getNode");
+			result = false;
+		}
+		return result;
+	}
+
+	private static boolean testRemoveNode() throws FileNotFoundException, UnsupportedEncodingException
+	{
+		boolean result = true;
+		NetworkModel nm1 = new NetworkModel("test\\test.txt");
+		nm1.removeNode(0);
+		if (nm1.nNodes() != 1 || nm1.getNode(0).getName().compareTo("\"Authentication server\"")!=0)
+		{
+//			System.out.println(nm1.nNodes());
+//			System.out.println(nm1.getNode(0).getName());
+			System.out.println("Failed: removeNode");
+			result = false;
+		}
+		if (nm1.nConnections() != 0)
+		{
+			System.out.println("Failed: Didn't remove connection");
+			result = false;
+		}
+		return result;
+	}
+
+	private static boolean testAddConnection() throws FileNotFoundException, UnsupportedEncodingException
+	{
+		boolean result = true;
+		NetworkModel nm1 = new NetworkModel("test\\test.txt");
+		nm1.addNode(new NetworkNode("test", 0, 0));
+		nm1.addConnection(new NetworkConnection("test", Side.Top, "\"Central\"", Side.Bottom));
+		if (nm1.nConnections() != 2)
+		{
+			System.out.println("Failed: addConnection");
+			result = false;
+		}
+		return result;
+	}
+
+	private static boolean testnConnections() throws FileNotFoundException, UnsupportedEncodingException
+	{
+		boolean result = true;
+		NetworkModel nm1 = new NetworkModel("test\\test.txt");
+		if (nm1.nConnections() != 1)
+		{
+			System.out.println("Failed: nConnections");
+			result = false;
+		}
+		return result;
+	}
+
+	private static boolean testGetConnection() throws FileNotFoundException, UnsupportedEncodingException
+	{
+		boolean result = true;
+		NetworkModel nm1 = new NetworkModel("test\\test.txt");
+		NetworkConnection c = nm1.getConnection(0);
+		if (c.getNode1().compareTo("\"Central\"") !=0 && c.getNode2().compareTo("\"Authentication server\"") !=0)
+		{
+			System.out.println("Failed: getConnection");
+		}
+		
+		try {
+			nm1.getConnection(5);
+			System.out.println("Failed: getConnection");
+		} catch (IndexOutOfBoundsException e) {
+			//Should throw exception
+		}
+		
+		return result;
+	}
+	
+	private static boolean testRemoveConnection() throws FileNotFoundException, UnsupportedEncodingException
+	{
+		boolean result = true;
+		NetworkModel nm1 = new NetworkModel("test\\test.txt");
+		nm1.removeConnection(0);
+		if (nm1.nConnections() != 0)
+		{
+			System.out.println("Failed: removeConnection");
+			result = false;
+		}
+		return result;
 	}
 }
 

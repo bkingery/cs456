@@ -1,0 +1,3 @@
+N 100 200 "Central"
+N 200 200 "Authentication server"
+C "Central" R "Authentication server" L

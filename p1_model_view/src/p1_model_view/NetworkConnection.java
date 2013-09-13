@@ -44,9 +44,25 @@ public class NetworkConnection
 	public NetworkConnection(String node1, Side side1, String node2, Side side2)
 	{
 		this.node1 = node1;
-		this.side1 = side1;
+		this.side1 = Side.fromString(side1.getText());
 		this.node2 = node2;
 		this.side2 = side2;
+	}
+	
+	/**
+	 * @return the name of the first node
+	 */
+	public String getNode1()
+	{
+		return this.node1;
+	}
+	
+	/**
+	 * @return the name of the second node
+	 */
+	public String getNode2()
+	{
+		return this.node2;
 	}
 	
 	/**
@@ -54,6 +70,6 @@ public class NetworkConnection
 	 */
 	public String toString()
 	{
-		return "C "+node1+" "+side1.getText()+" "+node2+" "+side2.getText();
+		return "C \""+node1+"\" "+this.side1+" \""+node2+"\" "+this.side2;
 	}
 }

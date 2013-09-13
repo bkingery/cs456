@@ -88,6 +88,6 @@ public class NetworkNode
 	 */
 	public String toString()
 	{
-		return "N "+String.valueOf(xCenter)+" "+String.valueOf(yCenter)+" "+nodeName;
+		return "N "+String.valueOf(xCenter)+" "+String.valueOf(yCenter)+" \""+nodeName+"\"";
 	}
 }
