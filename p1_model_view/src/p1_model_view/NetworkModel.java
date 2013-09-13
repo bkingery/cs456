@@ -63,24 +63,21 @@ public class NetworkModel
 	{
 		String [] tokens  = line.split("\"*\"");
 		String [] coordinates = tokens[0].split(" ");
-		String nodeName = tokens[1];
+		String nodeName = tokens[1].trim();
 		double xCenter	= Double.parseDouble(coordinates[1]);
 		double yCenter = Double.parseDouble(coordinates[2]);
 		NetworkNode n = new NetworkNode(nodeName, xCenter, yCenter);
-//		System.out.println(n.toString());
 		this.addNode(n);
 	}
 	
 	private void parseNetworkConnection(String line)
 	{
 		String [] tokens = line.split("\"*\"");
-//		System.out.println(Arrays.toString(tokens));
-		String node1 = tokens[1];
-		Side side1 = Side.fromString(tokens[2]);
-		String node2 = tokens[3];
-		Side side2 = Side.fromString(tokens[4]);
+		String node1 = tokens[1].trim();
+		Side side1 = Side.valueOf(tokens[2].trim());
+		String node2 = tokens[3].trim();
+		Side side2 = Side.valueOf(tokens[4].trim());
 		NetworkConnection c = new NetworkConnection(node1, side1, node2, side2);
-		System.out.println(c.toString());
 		this.addConnection(c);
 	}
 	
@@ -381,7 +378,7 @@ public class NetworkModel
 	{
 		boolean result = true;
 		NetworkModel nm1 = new NetworkModel("test\\test.txt");
-		if (nm1.getNode(0).getName().compareTo("\"Central\"")!=0)
+		if (nm1.getNode(0).getName().compareTo("Central")!=0)
 		{
 			System.out.println("Failed: getNode");
 			result = false;
@@ -394,7 +391,7 @@ public class NetworkModel
 		boolean result = true;
 		NetworkModel nm1 = new NetworkModel("test\\test.txt");
 		nm1.removeNode(0);
-		if (nm1.nNodes() != 1 || nm1.getNode(0).getName().compareTo("\"Authentication server\"")!=0)
+		if (nm1.nNodes() != 1 || nm1.getNode(0).getName().compareTo("Authentication server")!=0)
 		{
 //			System.out.println(nm1.nNodes());
 //			System.out.println(nm1.getNode(0).getName());
@@ -414,7 +411,7 @@ public class NetworkModel
 		boolean result = true;
 		NetworkModel nm1 = new NetworkModel("test\\test.txt");
 		nm1.addNode(new NetworkNode("test", 0, 0));
-		nm1.addConnection(new NetworkConnection("test", Side.Top, "\"Central\"", Side.Bottom));
+		nm1.addConnection(new NetworkConnection("test", Side.T, "Central", Side.B));
 		if (nm1.nConnections() != 2)
 		{
 			System.out.println("Failed: addConnection");
@@ -440,7 +437,7 @@ public class NetworkModel
 		boolean result = true;
 		NetworkModel nm1 = new NetworkModel("test\\test.txt");
 		NetworkConnection c = nm1.getConnection(0);
-		if (c.getNode1().compareTo("\"Central\"") !=0 && c.getNode2().compareTo("\"Authentication server\"") !=0)
+		if (c.getNode1().compareTo("Central") !=0 && c.getNode2().compareTo("Authentication server") !=0)
 		{
 			System.out.println("Failed: getConnection");
 		}

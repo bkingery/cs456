@@ -5,29 +5,30 @@ package p1_model_view;
 */
 public class NetworkConnection
 {
-	public enum Side {Left("L"), Right("R"), Top("T"), Bottom("B");
-		
-		private String text;
-
-	  	Side(String text) {this.text = text;}
-
-	  	public String getText() {return this.text;}
-
-	  	public static Side fromString(String text) 
-	  	{
-	  		if (text != null) 
-	  		{
-	  			for (Side s : Side.values()) 
-	  			{
-	  				if (text.equalsIgnoreCase(s.text)) 
-	  				{
-	  					return s;
-	  				}
-	  			}
-	  		}
-	  		return null;
-	  	}
-	  }
+	public enum Side {L,R,T,B}
+//	public enum Side {Left("L"), Right("R"), Top("T"), Bottom("B");
+//		
+//		private String text;
+//
+//	  	Side(String text) {this.text = text;}
+//
+//	  	public String getText() {return this.text;}
+//
+//	  	public static Side fromString(String text) 
+//	  	{
+//	  		if (text != null) 
+//	  		{
+//	  			for (Side s : Side.values()) 
+//	  			{
+//	  				if (text.equalsIgnoreCase(s.text)) 
+//	  				{
+//	  					return s;
+//	  				}
+//	  			}
+//	  		}
+//	  		return null;
+//	  	}
+//	  }
 	
 	private String node1;
 	private String node2;
@@ -44,7 +45,7 @@ public class NetworkConnection
 	public NetworkConnection(String node1, Side side1, String node2, Side side2)
 	{
 		this.node1 = node1;
-		this.side1 = Side.fromString(side1.getText());
+		this.side1 = side1;
 		this.node2 = node2;
 		this.side2 = side2;
 	}
