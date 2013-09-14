@@ -67,6 +67,22 @@ public class NetworkConnection
 	}
 	
 	/**
+	 * @return side1
+	 */
+	public Side getSide1()
+	{
+		return this.side1;
+	}
+	
+	/**
+	 * @return side1
+	 */
+	public Side getSide2()
+	{
+		return this.side2;
+	}
+	
+	/**
 	 * @return "C node1 side1 node2 side2"
 	 */
 	public String toString()

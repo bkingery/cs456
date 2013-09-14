@@ -154,6 +154,22 @@ public class NetworkModel
 	{
 		return this.nodeList.get(i);
 	}
+	
+	/**
+	 * @param nodeName : the name of the node you want
+	 * @return the specified NetworkNode if it exists, null otherwise.
+	 */
+	public NetworkNode getNode(String nodeName)
+	{
+		for (int i=0; i<this.nodeList.size(); i++)
+		{
+			NetworkNode n = this.nodeList.get(i);
+			if (n.getName().compareTo(nodeName) == 0)
+				return n;
+		}
+		
+		return null;
+	}
 
 	/**
 	 * Removes the specified object from the list of nodes.
@@ -360,13 +376,13 @@ public class NetworkModel
 	{
 		boolean result = true;
 		NetworkModel nm1 = new NetworkModel("test\\test.txt");
-		if (nm1.nNodes() != 2)
+		if (nm1.nNodes() != 3)
 		{
 			System.out.println("Failed: nNodes");
 			result = false;
 		}
 		nm1.addNode(new NetworkNode("test1", 0,0));
-		if (nm1.nNodes() != 3)
+		if (nm1.nNodes() != 4)
 		{
 			System.out.println("Failed: nNodes");
 			result = false;
@@ -391,16 +407,14 @@ public class NetworkModel
 		boolean result = true;
 		NetworkModel nm1 = new NetworkModel("test\\test.txt");
 		nm1.removeNode(0);
-		if (nm1.nNodes() != 1 || nm1.getNode(0).getName().compareTo("Authentication server")!=0)
+		if (nm1.nNodes() != 2 || nm1.getNode(0).getName().compareTo("Authentication server")!=0)
 		{
-//			System.out.println(nm1.nNodes());
-//			System.out.println(nm1.getNode(0).getName());
 			System.out.println("Failed: removeNode");
 			result = false;
 		}
-		if (nm1.nConnections() != 0)
+		if (nm1.nConnections() != 3)
 		{
-			System.out.println("Failed: Didn't remove connection");
+			System.out.println("Failed: removeNode Didn't remove connection");
 			result = false;
 		}
 		return result;
@@ -412,7 +426,7 @@ public class NetworkModel
 		NetworkModel nm1 = new NetworkModel("test\\test.txt");
 		nm1.addNode(new NetworkNode("test", 0, 0));
 		nm1.addConnection(new NetworkConnection("test", Side.T, "Central", Side.B));
-		if (nm1.nConnections() != 2)
+		if (nm1.nConnections() != 6)
 		{
 			System.out.println("Failed: addConnection");
 			result = false;
@@ -424,7 +438,7 @@ public class NetworkModel
 	{
 		boolean result = true;
 		NetworkModel nm1 = new NetworkModel("test\\test.txt");
-		if (nm1.nConnections() != 1)
+		if (nm1.nConnections() != 5)
 		{
 			System.out.println("Failed: nConnections");
 			result = false;
@@ -457,7 +471,19 @@ public class NetworkModel
 		boolean result = true;
 		NetworkModel nm1 = new NetworkModel("test\\test.txt");
 		nm1.removeConnection(0);
-		if (nm1.nConnections() != 0)
+		if (nm1.nConnections() != 4)
+		{
+			System.out.println("Failed: removeConnection");
+			result = false;
+		}
+		nm1.removeConnection(3);
+		if (nm1.nConnections() != 3)
+		{
+			System.out.println("Failed: removeConnection");
+			result = false;
+		}
+		nm1.removeConnection(1);
+		if (nm1.nConnections() != 2)
 		{
 			System.out.println("Failed: removeConnection");
 			result = false;

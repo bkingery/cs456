@@ -7,15 +7,25 @@ public class Network
 {
 	public static void main(String[] args) 
 	{
-		NetworkModel.Test();
+//		NetworkModel.Test();
 		
-		System.out.println("Model View");
-		
-		//TODO parse the file and create NetworkModel object from it.
-		//TODO open JFrame that contains a NetworkView object that displays the Network Model.
-		
+		NetworkModel networkModel = null;
+		try {
+			if (args.length == 0)
+				networkModel = new NetworkModel();
+			else if (args.length == 1)
+				networkModel = new NetworkModel(args[0]);
+			else
+			{
+				System.out.println("Provide a single file path.");
+				return;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+			
 		//Create the frame
-		JFrame F = new JFrame("Model View");
+		JFrame F = new JFrame("Network");
 
 		//Set the position and the size of frame's window
 		F.setBounds(100, 100, 300, 400);
@@ -28,7 +38,7 @@ public class Network
 					{ System.exit(0); }
 				});
 
-		//F.getContentPane().add(new); //TODO what goes here
+		F.getContentPane().add(new NetworkView(networkModel));
 		F.setVisible(true);
 	}
 
