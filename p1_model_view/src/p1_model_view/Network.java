@@ -3,7 +3,7 @@ package p1_model_view;
 import java.awt.event.*;
 import javax.swing.*;
 
-public class Main 
+public class Network 
 {
 	public static void main(String[] args) 
 	{
@@ -12,7 +12,7 @@ public class Main
 		System.out.println("Model View");
 		
 		//TODO parse the file and create NetworkModel object from it.
-				//TODO open JFrame that contains a NetworkView object that displays the Network Model.
+		//TODO open JFrame that contains a NetworkView object that displays the Network Model.
 		
 		//Create the frame
 		JFrame F = new JFrame("Model View");
