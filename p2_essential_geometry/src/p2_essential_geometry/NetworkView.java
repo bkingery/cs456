@@ -2,18 +2,19 @@ package p2_essential_geometry;
 
 import java.awt.*;
 import java.awt.event.*;
+
 import javax.swing.*;
 
 import p2_essential_geometry.NetworkConnection.Side;
 
-public class NetworkView extends JPanel 
+public class NetworkView extends JPanel implements MouseListener
 {
 	NetworkModel networkModel;
     Image world;
 	public NetworkView(NetworkModel networkModel)
 	{
 		this.networkModel = networkModel;
-		enableEvents(AWTEvent.MOUSE_EVENT_MASK);
+		addMouseListener(this);
 	}
 	
 	/**
@@ -97,11 +98,31 @@ public class NetworkView extends JPanel
     		g.drawString(n.getName(), textLeft, textBase);
         }
     }
-	
-	public void processMouseEvent(MouseEvent e)
-	{
-		//TODO
-//		e.MOUSE_RELEASED
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+		System.out.println("Mouse Released");
 	}
 }
 
