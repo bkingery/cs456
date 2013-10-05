@@ -12,19 +12,19 @@ public class GeometryDescriptor
 		this.connIndex = -1;
 	}
 	public int getCharIndex() {
-		return charIndex;
+		return this.charIndex;
 	}
 	public void setCharIndex(int charIndex) {
 		this.charIndex = charIndex;
 	}
 	public int getNodeIndex() {
-		return nodeIndex;
+		return this.nodeIndex;
 	}
 	public void setNodeIndex(int nodeIndex) {
 		this.nodeIndex = nodeIndex;
 	}
 	public int getConnIndex() {
-		return connIndex;
+		return this.connIndex;
 	}
 	public void setConnIndex(int connIndex) {
 		this.connIndex = connIndex;
