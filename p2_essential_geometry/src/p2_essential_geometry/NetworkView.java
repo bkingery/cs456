@@ -282,8 +282,8 @@ public class NetworkView extends JPanel implements MouseListener
 	{
 		int N = 10;
 		float inc = (upperT - lowerT)/N;
-		Point lowP = computePoint(a, b, lowerT);
-		Point highP = computePoint(a, b, upperT);
+		Point lowP = computePointLine(a, b, lowerT);
+		Point highP = computePointLine(a, b, upperT);
 		if (pointDistance(lowP, highP) <= 1.0)
 			return lowP; //close enough for pixel resolution
 		
@@ -293,7 +293,7 @@ public class NetworkView extends JPanel implements MouseListener
 		
 		for (float t=lowerT+inc; t<=upperT; t=t+inc)
 		{
-			Point tp = computePoint(a, b, t);
+			Point tp = computePointLine(a, b, t);
 			if (pointDistance(tp, m) < nearD)
 			{
 				nearD = pointDistance(tp, m);
@@ -322,7 +322,7 @@ public class NetworkView extends JPanel implements MouseListener
 	/**
 	 * @return The point on a line using the parametric form
 	 */
-	private Point computePoint(Point a, Point b, float t) 
+	private Point computePointLine(Point a, Point b, float t) 
 	{
 		Point result = new Point();
 		result.x = (int) (a.x+t*(b.x-a.x));
