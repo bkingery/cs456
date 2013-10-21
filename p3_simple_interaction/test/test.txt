@@ -1,0 +1,11 @@
+N 100 200 "Central"
+N 250 200 "Authentication server"
+N 150 50 "BOB"
+N 165 60 "H"
+N 300 300 "This is a Long one......... How did it do?"
+C "Central" R "Authentication server" L
+C "BOB" B "Authentication server" L
+C "BOB" B "Authentication server" R
+C "BOB" L "Central" T
+C "Central" B "Authentication server" B
+C "Authentication server" R "This is a Long one......... How did it do?" L
