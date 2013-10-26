@@ -7,7 +7,7 @@ import javax.swing.*;
 
 import p3_simple_interaction.NetworkConnection.Side;
 
-public class NetworkView extends JPanel implements MouseListener, KeyListener, NetworkListener
+public class NetworkView extends JPanel implements MouseListener, MouseMotionListener, KeyListener, NetworkListener
 {
 	private NetworkModel networkModel;
 	private Font font;
@@ -28,6 +28,7 @@ public class NetworkView extends JPanel implements MouseListener, KeyListener, N
 		//Register as listener
 		this.networkModel.addNetworkListener(this);
 		addMouseListener(this);
+		addMouseMotionListener(this);
 		addKeyListener(this);
 	}
 	
@@ -122,8 +123,12 @@ public class NetworkView extends JPanel implements MouseListener, KeyListener, N
 		return p;
 	}
 	
+	/**
+	 * The main paint method
+	 */
 	public void paint(Graphics g)
     {
+		super.paint(g);
         g.setFont(font);
         drawConnections(g);
         drawNodes(g);
@@ -223,8 +228,8 @@ public class NetworkView extends JPanel implements MouseListener, KeyListener, N
 	}
 	
 	public void nodeChanged(NetworkNode n)
-	{		
-		this.update(this.getGraphics());
+	{
+		this.repaint();
 	}
 	
 	private int getCharIndex(Point m) 
@@ -457,6 +462,10 @@ public class NetworkView extends JPanel implements MouseListener, KeyListener, N
 		return g;
 	}
 
+	//********************************************************
+	// Mouse Listener
+	//********************************************************
+	
 	@Override
 	public void mouseReleased(MouseEvent e) 
 	{
@@ -492,7 +501,7 @@ public class NetworkView extends JPanel implements MouseListener, KeyListener, N
 		{
 			setCurConnection(g.getConnIndex());
 		}
-		this.update(this.getGraphics());
+		this.repaint();
 	}
 
 	@Override
@@ -509,7 +518,32 @@ public class NetworkView extends JPanel implements MouseListener, KeyListener, N
 	public void mouseExited(MouseEvent e) {
 		// TODO Auto-generated method stub
 	}
+	
+	//********************************************************
+	// Mouse Motion Listener
+	//********************************************************
+	
+	@Override
+	public void mouseDragged(MouseEvent e) 
+	{
+		if (this.getCurNode() >= 0)
+		{
+			NetworkNode n = this.networkModel.getNode(getCurNode());
+			Point p = e.getPoint();
+			n.setLocation(p.getX(), p.getY());
+		}
+	}
 
+	@Override
+	public void mouseMoved(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	//********************************************************
+	// Key Listener
+	//********************************************************
+	
 	@Override
 	public void keyPressed(KeyEvent e) {
 		// TODO Auto-generated method stub
@@ -521,19 +555,33 @@ public class NetworkView extends JPanel implements MouseListener, KeyListener, N
 		if (getCurCharIndex() >=0)
 		{
 			NetworkNode n = this.networkModel.getNode(getCurNode());
-			if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE)
+			switch (e.getKeyCode())
+			{
+			case KeyEvent.VK_BACK_SPACE:
 			{
 				String newName = removeCharAt(n.getName(), getCurCharIndex());
 				int charIndex = getCurCharIndex();
 				charIndex = (charIndex-1 <= 0) ? 0 : charIndex-1;
 				setCurCharIndex(charIndex);
 				n.setName(newName);
+				break;
 			}
-			else
+			case KeyEvent.VK_DOWN:
+			case KeyEvent.VK_UP:
+				break;
+			case KeyEvent.VK_RIGHT:
+//				System.out.println("Right");
+				break;
+			case KeyEvent.VK_LEFT:
+//				System.out.println("Left");
+				break;
+			default:
 			{
 				String newName = insertCharAt(n.getName(), e.getKeyChar(), getCurCharIndex());
 				setCurCharIndex(getCurCharIndex()+1);
 				n.setName(newName);
+				break;
+			}
 			}
 		}
 	}
@@ -542,8 +590,6 @@ public class NetworkView extends JPanel implements MouseListener, KeyListener, N
 	public void keyTyped(KeyEvent e) {
 		// TODO Auto-generated method stub
 	}
-
-	
 }
 
 

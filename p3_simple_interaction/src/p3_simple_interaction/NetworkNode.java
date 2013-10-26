@@ -47,9 +47,11 @@ public class NetworkNode
 				if (c.getNode2().compareTo(nodeName)==0)
 					c.setNode2(newName);
 			}
+			this.nodeName = newName;
 			this.networkModel.nodeChanged(this);
 		}
-		this.nodeName = newName;
+		else
+			this.nodeName = newName;
 	}
 
 	/**
