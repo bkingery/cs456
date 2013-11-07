@@ -27,7 +27,7 @@ public class NetworkModel
 	public NetworkModel() throws FileNotFoundException, UnsupportedEncodingException
 	{
 		long timestamp = System.currentTimeMillis()/1000;
-		setFileName("defaultNetwork_"+timestamp+".txt");
+		setFileName("defaultNetwork_"+timestamp+".network");
 		save();
 	}
 	

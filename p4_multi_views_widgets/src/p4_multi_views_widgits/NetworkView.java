@@ -7,7 +7,7 @@ import javax.swing.*;
 
 import p4_multi_views_widgits.NetworkConnection.Side;
 
-public class NetworkView extends JPanel implements ActionListener, MouseListener, MouseMotionListener, KeyListener, NetworkListener
+public class NetworkView extends JPanel implements MouseListener, MouseMotionListener, KeyListener, NetworkListener
 {
 	private NetworkModel networkModel;
 	private Font font;
@@ -17,49 +17,8 @@ public class NetworkView extends JPanel implements ActionListener, MouseListener
 	private int curConnection;
 	private int curCharIndex;
 	
-	JMenuBar menuBar;
-	JMenu file;
-	JMenuItem open, save, saveAs;
-	
-	JMenuBar leftPallete;
-	JButton select, node, connection;
-	
 	public NetworkView(NetworkModel networkModel)
 	{
-		//Set up top menu
-		menuBar = new JMenuBar();
-		file = new JMenu("File");
-		open = new JMenuItem("Open");
-		open.addActionListener(this);
-		save = new JMenuItem("Save");
-		save.addActionListener(this);
-		saveAs = new JMenuItem("Save As");
-		saveAs.addActionListener(this);
-		
-		menuBar.add(file);
-		file.add(open);
-		file.add(save);
-		file.add(saveAs);
-		
-		//Set up left button pallete
-		leftPallete = new JMenuBar();
-		leftPallete.setLayout(new GridLayout(0,1));
-		select = new JButton("Select");
-		select.addActionListener(this);
-		node = new JButton("Node");
-		node.addActionListener(this);
-		connection = new JButton("Connection");
-		connection.addActionListener(this);
-		
-		leftPallete.add(select);
-		leftPallete.add(node);
-		leftPallete.add(connection);
-		
-		
-		this.setLayout(new BorderLayout());
-		this.add(menuBar, BorderLayout.NORTH);
-		this.add(leftPallete, BorderLayout.WEST);
-		
 		this.networkModel = networkModel;
 		font = new Font("Helvetica",Font.PLAIN,15);
 		FM = getFontMetrics(font);
@@ -71,6 +30,10 @@ public class NetworkView extends JPanel implements ActionListener, MouseListener
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		addKeyListener(this);
+	}
+	
+	public NetworkModel getNetworkModel() {
+		return this.networkModel;
 	}
 	
 	/**
@@ -571,7 +534,9 @@ public class NetworkView extends JPanel implements ActionListener, MouseListener
 		{
 			NetworkNode n = this.networkModel.getNode(getCurNode());
 			Point p = e.getPoint();
-			n.setLocation(p.getX(), p.getY());
+			double x = (p.getX() < 0) ? 0 : p.getX();
+			double y = (p.getY() < 0) ? 0 : p.getY();
+			n.setLocation(x, y);
 		}
 	}
 
@@ -630,13 +595,6 @@ public class NetworkView extends JPanel implements ActionListener, MouseListener
 	@Override
 	public void keyTyped(KeyEvent e) {
 		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public void actionPerformed(ActionEvent e) 
-	{
-		// TODO Auto-generated method stub
-		System.out.println(e.getActionCommand());
 	}
 }
 
