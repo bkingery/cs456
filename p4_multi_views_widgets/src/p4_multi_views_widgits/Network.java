@@ -4,13 +4,20 @@ import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.*;
 import java.io.File;
+import java.util.ArrayList;
 
 import javax.swing.*;
 
 public class Network 
 {
+	static ArrayList<NetworkView> networkViewList = new ArrayList<NetworkView>();
+	
 	public static void createNewWindow(NetworkModel networkModel)
 	{
+		final NetworkView networkView = new NetworkView(networkModel);
+		networkViewList.add(networkView);
+		NetworkViewContainer container = new NetworkViewContainer(networkView);
+		
 		//Create the frame
 		JFrame F = new JFrame("Network");
 
@@ -22,11 +29,12 @@ public class Network
 				new WindowAdapter()
 				{
 					public void windowClosing(WindowEvent evt)
-					{ System.exit(0); }
+					{ 
+						System.out.println(networkView.getNetworkModel().getFileName());
+						if (networkViewList.size() == 1)
+							System.exit(0); 
+					}
 				});
-		
-		NetworkView networkView = new NetworkView(networkModel);
-		NetworkViewContainer container = new NetworkViewContainer(networkView);
 		
 		F.getContentPane().add(container);
 		F.setVisible(true);

@@ -4,10 +4,14 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
+
+import p4_multi_views_widgits.NetworkView.Mode;
 
 public class NetworkViewContainer extends JPanel
 {	
@@ -51,10 +55,14 @@ public class NetworkViewContainer extends JPanel
 		
 		//Set up left button pallete
 		JPanel buttonPanel = new JPanel(new GridLayout(3,1));
+		ButtonGroup buttonGroup = new ButtonGroup();
 		
-		JButton selectModeButton = new JButton("Select");
-		JButton nodeDrawModeButton = new JButton("Node");
-		JButton connectionDrawModeButton = new JButton("Connection");
+		JRadioButton selectModeButton = new JRadioButton("Select");
+		JRadioButton nodeDrawModeButton = new JRadioButton("Node");
+		JRadioButton connectionDrawModeButton = new JRadioButton("Connection");
+		
+		selectModeButton.setSelected(true);
+		selectMode();
 		
 		selectModeButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) { selectMode(); }
@@ -68,6 +76,9 @@ public class NetworkViewContainer extends JPanel
 			public void actionPerformed(ActionEvent e) { connectionDrawMode(); }
 		});
 		
+		buttonGroup.add(selectModeButton);
+		buttonGroup.add(nodeDrawModeButton);
+		buttonGroup.add(connectionDrawModeButton);
 		buttonPanel.add(selectModeButton);
 		buttonPanel.add(nodeDrawModeButton);
 		buttonPanel.add(connectionDrawModeButton);
@@ -90,7 +101,6 @@ public class NetworkViewContainer extends JPanel
 	
 	public void open()
 	{
-		System.out.println("Open");
 		int returnVal = fileChooser.showOpenDialog(NetworkViewContainer.this);
 
         if (returnVal == JFileChooser.APPROVE_OPTION) 
@@ -109,35 +119,46 @@ public class NetworkViewContainer extends JPanel
 			}
             
         } 
-        else 
-        {
-            System.out.println("Open command cancelled by user.");
-        }
 	}
 	
 	public void save()
 	{
-		System.out.println("Save");
+		networkView.save();
 	}
 	
 	public void saveAs()
 	{
-		System.out.println("SaveAs");
+		int returnVal = fileChooser.showSaveDialog(this);
+
+        if (returnVal == JFileChooser.APPROVE_OPTION) 
+        {
+			try {
+				
+				File file = fileChooser.getSelectedFile();
+				String path = file.getCanonicalPath();
+				networkView.saveAs(path);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+        }
 	}
 	
 	public void selectMode()
 	{
-		System.out.println("Select");
+		networkView.setMode(Mode.SELECT);
+		networkView.requestFocusInWindow();
 	}
 	
 	public void nodeDrawMode()
 	{
-		System.out.println("Node");
+		networkView.setMode(Mode.NODE);
+		networkView.requestFocusInWindow();
 	}
 	
 	public void connectionDrawMode()
 	{
-		System.out.println("Conn");
+		networkView.setMode(Mode.CONNECTION);
+		networkView.requestFocusInWindow();
 	}
 	
 }

@@ -16,7 +16,6 @@ public class NetworkModel
 	private ArrayList<NetworkNode> nodeList = new ArrayList<NetworkNode>();
 	private ArrayList<NetworkConnection> conList = new ArrayList<NetworkConnection>();
 	
-	
 	private ArrayList<NetworkListener> listeners = new ArrayList<NetworkListener>();
 	
 	/**
@@ -75,7 +74,6 @@ public class NetworkModel
 		double xCenter	= Double.parseDouble(coordinates[1]);
 		double yCenter = Double.parseDouble(coordinates[2]);
 		NetworkNode n = new NetworkNode(nodeName, xCenter, yCenter);
-		n.setNetwork(this);
 		this.addNode(n);
 	}
 	
@@ -114,7 +112,18 @@ public class NetworkModel
 	 */
 	public void save() throws FileNotFoundException, UnsupportedEncodingException
 	{
-		PrintWriter writer = new PrintWriter(getFileName(), "UTF-8");
+		saveAs(this.getFileName());
+	}
+	
+	/**
+	 * Saves the contents of this model to the file specified by path
+	 * @param path
+	 * @throws FileNotFoundException
+	 * @throws UnsupportedEncodingException
+	 */
+	public void saveAs(String path) throws FileNotFoundException, UnsupportedEncodingException
+	{
+		PrintWriter writer = new PrintWriter(path, "UTF-8");
 		for (int i=0; i<this.nodeList.size(); i++)
 		{
 			NetworkNode n = this.getNode(i);
@@ -143,6 +152,7 @@ public class NetworkModel
 	 */
 	public void addNode(NetworkNode newNode)
 	{
+		newNode.setNetwork(this);
 		this.nodeList.add(newNode);
 		this.unsavedChanges = true;
 	}
