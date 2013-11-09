@@ -25,6 +25,8 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 	private int curConnection;
 	private int curCharIndex;
 	
+	private boolean snapping = false;
+	
 	public NetworkView(NetworkModel networkModel)
 	{
 		this.networkModel = networkModel;
@@ -340,6 +342,34 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		sofar += nextchar;
 		return getCharIndex(text, sofar, start_x, ++i, mx);
 	}
+	
+	private Point calculateCurveControlPoint(Point p1, Side s, double distance)
+	{
+		Point c = new Point();
+		double x = p1.getX();
+		double y = p1.getY();
+		
+		distance = (distance > 100) ? 100 : distance;
+		
+		switch (s)
+		{
+		case B:
+			y += distance;
+			break;
+		case T:
+			y -= distance;
+			break;
+		case R:
+			x += distance;
+			break;
+		case L:
+			x -= distance;
+			break;
+		}
+		
+		c.setLocation(x, y);
+		return c;
+	}
 
 
 	/**
@@ -367,13 +397,12 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
         		Side s2 = c.getSide2();
         		Point p1 = getConnectionPoint(n1, s1);
         		Point p2 = getConnectionPoint(n2, s2);
-//        		int c1x = (s1 == Side.T || s1 == Side.B) ? p1.x : ((s1 == Side.L) ? p1.x-100 : p1.x+100);
-//        		int c1y = (s1 == Side.L || s1 == Side.R) ? p1.y : ((s1 == Side.T) ? p1.y-100 : p1.y+100);
-//        		int c2x = (s2 == Side.T || s2 == Side.B) ? p2.x : ((s1 == Side.L) ? p2.x+100 : p2.x-100);
-//        		int c2y = (s2 == Side.L || s2 == Side.R) ? p2.y : ((s1 == Side.T) ? p2.y+100 : p2.y-100);
-//        		CubicCurve2D curve = new CubicCurve2D.Double(p1.x, p1.y, c1x, c1y, c2x, c2y, p2.x, p2.y);
-//        		g2.draw(curve);
-        		g.drawLine(p1.x, p1.y, p2.x, p2.y);
+        		double distance = Math.sqrt(pointDistance(p1, p2));
+        		Point c1 = calculateCurveControlPoint(p1, s1, distance);
+        		Point c2 = calculateCurveControlPoint(p2, s2, distance);
+        		CubicCurve2D curve = new CubicCurve2D.Double(p1.x, p1.y, c1.x, c1.y, c2.x, c2.y, p2.x, p2.y);
+        		g2.draw(curve);
+//        		g.drawLine(p1.x, p1.y, p2.x, p2.y);
         	}
         }
 	}
@@ -601,27 +630,33 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 	 */
 	private void snapToConnectionPoint(Point m)
 	{
-//		this.repaint();
-		ArrayList<Point> connectionPoints = getAllConnectionPoints();
-		for (int i=0; i<connectionPoints.size(); i++)
+		if (!snapping)
 		{
-			Point cp = connectionPoints.get(i);
-			Point upperLeft = new Point();
-			upperLeft.setLocation(cp.getX()-8, cp.getY()-8);
-			Point lowerRight = new Point();
-			lowerRight.setLocation(cp.getX()+8, cp.getY()+8);
-			
-			if (inBoundingBox(upperLeft, lowerRight, m))
+			snapping = true;
+			this.repaint();
+			ArrayList<Point> connectionPoints = getAllConnectionPoints();
+			for (int i=0; i<connectionPoints.size(); i++)
 			{
-				this.getGraphics().drawRect(cp.x-(8/2), cp.y-(8/2), 8, 8);
-				try {
-					Robot r = new Robot();
-					SwingUtilities.convertPointToScreen(cp, this);
-					r.mouseMove(cp.x, cp.y);
-				} catch (AWTException e) {
-					e.printStackTrace();
+				Point cp = connectionPoints.get(i);
+				Point upperLeft = new Point();
+				upperLeft.setLocation(cp.getX()-8, cp.getY()-8);
+				Point lowerRight = new Point();
+				lowerRight.setLocation(cp.getX()+8, cp.getY()+8);
+				
+				if (inBoundingBox(upperLeft, lowerRight, m))
+				{
+					this.getGraphics().drawRect(cp.x-(8/2), cp.y-(8/2), 8, 8);
+					try {
+						Robot r = new Robot();
+						SwingUtilities.convertPointToScreen(cp, this);
+						r.mouseMove(cp.x, cp.y);
+//						r.mouseMove(0, 0);
+					} catch (AWTException e) {
+						e.printStackTrace();
+					}
 				}
 			}
+			snapping = false;
 		}
 	}
 
