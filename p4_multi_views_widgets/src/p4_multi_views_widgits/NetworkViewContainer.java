@@ -66,9 +66,9 @@ public class NetworkViewContainer extends JPanel
 		JPanel buttonPanel = new JPanel(new GridLayout(3,1));
 		ButtonGroup buttonGroup = new ButtonGroup();
 		
-		selectIcon = new ImageIcon("icons\\selectionIcon.png");
-		nodeIcon = new ImageIcon("icons\\nodeIcon.png");
-		connectionIcon = new ImageIcon("icons\\connectionIcon.png");
+		selectIcon = new ImageIcon(getClass().getResource("/icons/selectionIcon.png"));
+		nodeIcon = new ImageIcon(getClass().getResource("/icons/nodeIcon.png"));
+		connectionIcon = new ImageIcon(getClass().getResource("/icons/connectionIcon.png"));
 		
 		selectModeButton = new JButton(selectIcon);
 		nodeDrawModeButton = new JButton(nodeIcon);
