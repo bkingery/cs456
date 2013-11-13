@@ -1,0 +1,15 @@
+N 100.0 200.0 "Central"
+N 250.0 200.0 "Authentication server"
+N 204.0 44.0 "BOB"
+N 468.0 107.0 "H"
+N 300.0 300.0 "This is a Long one......... How did it do?"
+N 478.0 188.0 "New node"
+N 214.0 450.0 "New node"
+C "Central" R "Authentication server" L
+C "BOB" B "Authentication server" L
+C "BOB" B "Authentication server" R
+C "BOB" L "Central" T
+C "Central" B "Authentication server" B
+C "Authentication server" R "This is a Long one......... How did it do?" L
+C "New node" B "This is a Long one......... How did it do?" R
+C "H" L "BOB" R
