@@ -19,6 +19,15 @@ public class NetworkViewContainer extends JPanel
 	final JFileChooser fileChooser;
 	FileNameExtensionFilter filter;
 	
+	
+	ImageIcon selectIcon;
+	ImageIcon nodeIcon;
+	ImageIcon connectionIcon;
+	
+	JButton selectModeButton;
+	JButton nodeDrawModeButton;
+	JButton connectionDrawModeButton;
+	
 	NetworkViewContainer(NetworkView networkView)
 	{
 		this.networkView = networkView;
@@ -57,24 +66,34 @@ public class NetworkViewContainer extends JPanel
 		JPanel buttonPanel = new JPanel(new GridLayout(3,1));
 		ButtonGroup buttonGroup = new ButtonGroup();
 		
-		JRadioButton selectModeButton = new JRadioButton("Select");
-		JRadioButton nodeDrawModeButton = new JRadioButton("Node");
-		JRadioButton connectionDrawModeButton = new JRadioButton("Connection");
+		selectIcon = new ImageIcon("icons\\selectionIcon.png");
+		nodeIcon = new ImageIcon("icons\\nodeIcon.png");
+		connectionIcon = new ImageIcon("icons\\connectionIcon.png");
 		
-		selectModeButton.setSelected(true);
-		selectMode();
+		selectModeButton = new JButton(selectIcon);
+		nodeDrawModeButton = new JButton(nodeIcon);
+		connectionDrawModeButton = new JButton(connectionIcon);
 		
 		selectModeButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) { selectMode(); }
+			public void actionPerformed(ActionEvent e) { selectMode(e); }
 		});
 		
 		nodeDrawModeButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) { nodeDrawMode(); }
+			public void actionPerformed(ActionEvent e) { nodeDrawMode(e); }
 		});
 		
 		connectionDrawModeButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) { connectionDrawMode(); }
+			public void actionPerformed(ActionEvent e) { connectionDrawMode(e); }
 		});
+		
+		selectModeButton.setPreferredSize(new Dimension(80,80));
+		selectModeButton.setMinimumSize(new Dimension(80,80));
+		nodeDrawModeButton.setPreferredSize(new Dimension(80,80));
+		nodeDrawModeButton.setMinimumSize(new Dimension(80,80));
+		connectionDrawModeButton.setPreferredSize(new Dimension(80,80));
+		connectionDrawModeButton.setMinimumSize(new Dimension(80,80));
+
+		selectModeButton.doClick();
 		
 		buttonGroup.add(selectModeButton);
 		buttonGroup.add(nodeDrawModeButton);
@@ -83,7 +102,7 @@ public class NetworkViewContainer extends JPanel
 		buttonPanel.add(nodeDrawModeButton);
 		buttonPanel.add(connectionDrawModeButton);
 		
-		JPanel west = new JPanel(new GridLayout(2,1));
+		JPanel west = new JPanel(new GridLayout(0,1));
 		GridBagConstraints gbc = new GridBagConstraints();
         gbc.anchor = GridBagConstraints.NORTH;
         gbc.weighty = 1;
@@ -143,20 +162,32 @@ public class NetworkViewContainer extends JPanel
         }
 	}
 	
-	public void selectMode()
+	public void selectMode(ActionEvent e)
 	{
+		selectModeButton.setEnabled(false);
+		nodeDrawModeButton.setEnabled(true);
+		connectionDrawModeButton.setEnabled(true);
+		
 		networkView.setMode(Mode.SELECT);
 		networkView.requestFocusInWindow();
 	}
 	
-	public void nodeDrawMode()
+	public void nodeDrawMode(ActionEvent e)
 	{
+		nodeDrawModeButton.setEnabled(false);
+		selectModeButton.setEnabled(true);
+		connectionDrawModeButton.setEnabled(true);
+		
 		networkView.setMode(Mode.NODE);
 		networkView.requestFocusInWindow();
 	}
 	
-	public void connectionDrawMode()
+	public void connectionDrawMode(ActionEvent e)
 	{
+		connectionDrawModeButton.setEnabled(false);
+		nodeDrawModeButton.setEnabled(true);
+		selectModeButton.setEnabled(true);
+		
 		networkView.setMode(Mode.CONNECTION);
 		networkView.requestFocusInWindow();
 	}

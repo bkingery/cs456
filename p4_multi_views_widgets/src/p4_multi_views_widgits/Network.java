@@ -19,20 +19,47 @@ public class Network
 		NetworkViewContainer container = new NetworkViewContainer(networkView);
 		
 		//Create the frame
-		JFrame F = new JFrame("Network");
+		final JFrame F = new JFrame("Network");
 
 		//Set the position and the size of frame's window
 		F.setBounds(100, 100, 800, 600);
 		
 		//Set up quitting on close of window
+		F.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		F.addWindowListener(
 				new WindowAdapter()
 				{
 					public void windowClosing(WindowEvent evt)
 					{ 
 						System.out.println(networkView.getNetworkModel().getFileName());
-						if (networkViewList.size() == 1)
-							System.exit(0); 
+						if (networkView.getNetworkModel().nNetworkListeners() == 1 &&
+							networkView.getNetworkModel().unsavedChanges())
+						{
+							int reply = JOptionPane.showConfirmDialog(null, "Save Changes?", "Unsaved Changes", JOptionPane.YES_NO_CANCEL_OPTION);
+							if (reply == JOptionPane.YES_OPTION)
+							{
+								networkView.save();
+								networkView.getNetworkModel().removeNetworkListener(networkView);
+								F.dispose();
+								if (networkViewList.size() == 1)
+									System.exit(0);
+							}
+							if (reply == JOptionPane.NO_OPTION)
+							{
+								networkView.getNetworkModel().removeNetworkListener(networkView);
+								F.dispose();
+								if (networkViewList.size() == 1)
+									System.exit(0);
+							}
+								
+						}
+						else
+						{
+							networkView.getNetworkModel().removeNetworkListener(networkView);
+							F.dispose();
+							if (networkViewList.size() == 1)
+								System.exit(0);
+						}
 					}
 				});
 		

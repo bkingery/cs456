@@ -155,6 +155,7 @@ public class NetworkModel
 		newNode.setNetwork(this);
 		this.nodeList.add(newNode);
 		this.unsavedChanges = true;
+		this.nodeChanged(newNode);
 	}
 
 	/**
@@ -266,8 +267,17 @@ public class NetworkModel
 		this.listeners.remove(l);
 	}
 	
+	/**
+	 * @return The number of listeners listening to this model
+	 */
+	public int nNetworkListeners()
+	{
+		return this.listeners.size();
+	}
+	
 	public void nodeChanged(NetworkNode networkNode) 
 	{
+		this.unsavedChanges = true;
 		for (int i=0; i<listeners.size(); i++)
 		{
 			listeners.get(i).nodeChanged(networkNode);

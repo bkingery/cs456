@@ -1,6 +1,6 @@
-N 100.0 200.0 "Central"
-N 250.0 200.0 "Authentication server"
-N 423.0 58.0 "BOB"
+N 39.0 251.0 "Central"
+N 388.0 74.0 "Authentication server"
+N 62.0 34.0 "BOB"
 N 468.0 107.0 "H"
 N 300.0 300.0 "This is a Long one......... How did it do?"
 C "Central" R "Authentication server" L
