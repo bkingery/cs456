@@ -31,7 +31,7 @@ public class Network
 				{
 					public void windowClosing(WindowEvent evt)
 					{ 
-						System.out.println(networkView.getNetworkModel().getFileName());
+//						System.out.println(networkView.getNetworkModel().getFileName());
 						if (networkView.getNetworkModel().nNetworkListeners() == 1 &&
 							networkView.getNetworkModel().unsavedChanges())
 						{
@@ -51,7 +51,6 @@ public class Network
 								if (networkViewList.size() == 1)
 									System.exit(0);
 							}
-								
 						}
 						else
 						{

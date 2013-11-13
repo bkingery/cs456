@@ -4,4 +4,6 @@ public interface NetworkListener {
 
 	void nodeChanged(NetworkNode n);
 
+	void connectionChanged(NetworkConnection c);
+
 }

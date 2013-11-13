@@ -220,6 +220,8 @@ public class NetworkModel
 	{
 		this.conList.add(newConnection);
 		this.unsavedChanges = true;
+		this.connectionChanged(newConnection);
+		this.unsavedChanges = true;
 	}
 	
 	/**
@@ -245,10 +247,12 @@ public class NetworkModel
 	 */
 	public void removeConnection(int i)
 	{
-		this.conList.remove(i);
+		NetworkConnection c =this.conList.remove(i);
 		this.unsavedChanges = true;
+		
+		connectionChanged(c);
 	}
-	
+
 	/**
 	 * Registers a NetworkListener for notifications
 	 * @param l The NetworkListener to be notified.
@@ -282,6 +286,13 @@ public class NetworkModel
 		{
 			listeners.get(i).nodeChanged(networkNode);
 		}
+	}
+	
+	private void connectionChanged(NetworkConnection c) 
+	{
+		this.unsavedChanges = true;
+		for (int i=0; i<this.listeners.size(); i++)
+			listeners.get(i).connectionChanged(c);
 	}
 	
 	//************************************************************************

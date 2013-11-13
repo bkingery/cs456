@@ -29,7 +29,9 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 	private Point startConnection;
 	private int startNode;
 	private Side startSide;
-	private double[][] geometryMatrix = new double[2][4];
+	private Point connectionPrompt;
+	private CubicCurve2D tmpConnection;
+	
 	private double[][] bezierMatrix = { {-1,  3, -3, 1},
 										{ 3, -6,  3, 0},
 										{-3,  3,  0, 0},
@@ -44,6 +46,8 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		
 		snapping = false;
 		startConnection = null;
+		connectionPrompt = null;
+		tmpConnection = null;
 		
 		clearCurSelections();
 		
@@ -52,21 +56,11 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		addKeyListener(this);
-		
-//		for (int j=0; j<4; j++)
-//		{
-//			System.out.println();
-//			for (int i=0; i<4; i++)
-//				System.out.print(bezierMatrix[i][j] + ",");
-//		}
-			
-				
 	}
 	
 	public void setMode(Mode m)
 	{
 		this.mode = m;
-		System.out.println(mode);
 	}
 	
 	/**
@@ -141,10 +135,6 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		return curCharIndex;
 	}
 
-	private void setStartNode(int i) {
-		this.startNode = i;
-	}
-
 	/**
 	 * Sets all selections to -1
 	 * Equivalent to calling
@@ -203,7 +193,6 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 	private ArrayList<Point> getAllConnectionPoints()
 	{
 		ArrayList<Point> conPointList = new ArrayList<Point>();
-//		HashMap<Point, NetworkNode> pointNodeMap = new HashMap<Point, NetworkNode>();
 		for (int i=0; i<networkModel.nNodes(); i++)
 		{
 			NetworkNode n = networkModel.getNode(i);
@@ -320,11 +309,6 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		return result;
 	}
 	
-	public void nodeChanged(NetworkNode n)
-	{
-		this.repaint();
-	}
-	
 	private int getCharIndex(Point m) 
 	{
 		int result = -1;
@@ -429,17 +413,21 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 //        		g.drawLine(p1.x, p1.y, p2.x, p2.y);
         	}
         }
+		
+		if (tmpConnection != null)
+			g2.draw(this.tmpConnection);
+		if (connectionPrompt != null)
+			g2.drawRect(connectionPrompt.x, connectionPrompt.y, 16, 16);
 	}
 	
 	private double[][] computeCoefficientMatrix(double[][] geo)
 	{
 		double[][] coef = new double[2][4];
-		
+
 		for (int i=0; i<2; i++)
 			for (int j=0; j<4; j++)
 				for (int k=0; k<4; k++)
-					coef[i][j] += geo[i][j] * bezierMatrix[k][j];
-		
+					coef[i][j] += geo[i][k] * bezierMatrix[k][j];
 		return coef;
 	}
 	
@@ -454,13 +442,6 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		geo[1][1] = c1.getY();
 		geo[1][2] = c2.getY();
 		geo[1][3] = p2.getY();
-		
-		for (int i=0; i<2; i++)
-		{
-			System.out.println();
-			for (int j=0; j<4; j++)
-				System.out.print(geo[i][j] +",");
-		}
 		return geo;
 	}
 	
@@ -750,7 +731,6 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 			{
 				this.startConnection = p;
 				this.startNode = this.getNode(p);
-				System.out.println(startNode);
 				this.startSide = computeSide(networkModel.getNode(startNode), p);
 			}
 		}
@@ -758,12 +738,10 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 	
 	private void midConnection(Point p)
 	{
-		this.repaint();
-		Graphics2D g2 = (Graphics2D) this.getGraphics();
 		double distance = Math.sqrt(pointDistance(startConnection, p));
 		Point c1 = calculateCurveControlPoint(startConnection, startSide, distance);
-		CubicCurve2D curve = new CubicCurve2D.Double(startConnection.x, startConnection.y, c1.x, c1.y, c1.x, c1.y, p.x, p.y);
-		g2.draw(curve);
+		tmpConnection = new CubicCurve2D.Double(startConnection.x, startConnection.y, c1.x, c1.y, c1.x, c1.y, p.x, p.y);
+		this.repaint();
 	}
 
 	private void endConnection(Point p)
@@ -783,7 +761,11 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 				networkModel.addConnection(c);
 			}
 		}
+		startConnection = null;
 		startNode = -1;
+		startSide = null;
+		connectionPrompt = null;
+		tmpConnection = null;
 	}
 	
 	/**
@@ -792,35 +774,50 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 	 */
 	private void snapToConnectionPoint(Point m)
 	{
-//		System.out.println("snapToConnection");
+		connectionPrompt = null;
 		if (!snapping)
 		{
 			snapping = true;
-//			this.repaint();
 			ArrayList<Point> connectionPoints = getAllConnectionPoints();
 			for (int i=0; i<connectionPoints.size(); i++)
 			{
 				Point cp = connectionPoints.get(i);
 				Point upperLeft = new Point();
-				upperLeft.setLocation(cp.getX()-(15/2), cp.getY()-(15/2));
+				upperLeft.setLocation(cp.getX()-(8), cp.getY()-(8));
 				Point lowerRight = new Point();
-				lowerRight.setLocation(cp.getX()+(15/2), cp.getY()+(15/2));
+				lowerRight.setLocation(cp.getX()+(8), cp.getY()+(8));
 				
 				if (inBoundingBox(upperLeft, lowerRight, m))
 				{
-//					this.getGraphics().drawRect(upperLeft.x, upperLeft.y, 8, 8);
+					this.connectionPrompt = upperLeft;
 					try {
 						Robot r = new Robot();
 						SwingUtilities.convertPointToScreen(cp, this);
 						r.mouseMove(cp.x, cp.y);
-//						r.mouseMove(0, 0);
 					} catch (AWTException e) {
 						e.printStackTrace();
 					}
 				}
 			}
 			snapping = false;
+			this.repaint();
 		}
+	}
+	
+	//********************************************************
+	// Network Listener
+	//********************************************************
+	@Override
+	public void nodeChanged(NetworkNode n)
+	{
+		this.repaint();
+	}
+	
+	
+	@Override
+	public void connectionChanged(NetworkConnection c) 
+	{
+		this.repaint();
 	}
 
 	//********************************************************
@@ -932,8 +929,11 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		}
 		case CONNECTION:
 		{
-			snapToConnectionPoint(p);
-			midConnection(p);
+			if(startConnection != null)
+			{
+				snapToConnectionPoint(p);
+				midConnection(p);
+			}
 			break;
 		}
 		default:
@@ -971,10 +971,8 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 	@Override
 	public void keyReleased(KeyEvent e) 
 	{
-		System.out.println("keyReleased");
 		if (getCurCharIndex() >=0)
 		{
-			System.out.println("Pass Char Index");
 			NetworkNode n = this.networkModel.getNode(getCurNode());
 			switch (e.getKeyCode())
 			{
