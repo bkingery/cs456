@@ -1,4 +1,4 @@
-package p4_multi_views_widgits;
+package p5_transformations;
 
 /**
 * Objects of this class describe a single node in a network.

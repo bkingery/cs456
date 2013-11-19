@@ -1,10 +1,10 @@
-package p4_multi_views_widgits;
+package p5_transformations;
 
 import java.io.*;
 import java.net.URL;
 import java.util.*;
 
-import p4_multi_views_widgits.NetworkConnection.Side;
+import p5_transformations.NetworkConnection.Side;
 
 /**
  * Objects of this class contain information about a network nodes and their connections.  

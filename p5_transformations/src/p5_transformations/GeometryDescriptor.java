@@ -1,4 +1,4 @@
-package p4_multi_views_widgits;
+package p5_transformations;
 
 public class GeometryDescriptor 
 {

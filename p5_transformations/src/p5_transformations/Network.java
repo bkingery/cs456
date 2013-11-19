@@ -1,4 +1,4 @@
-package p4_multi_views_widgits;
+package p5_transformations;
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;

@@ -1,4 +1,4 @@
-package p4_multi_views_widgits;
+package p5_transformations;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -11,7 +11,8 @@ import java.io.UnsupportedEncodingException;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import p4_multi_views_widgits.NetworkView.Mode;
+import p5_transformations.NetworkView.Mode;
+
 
 public class NetworkViewContainer extends JPanel
 {	
@@ -23,10 +24,12 @@ public class NetworkViewContainer extends JPanel
 	ImageIcon selectIcon;
 	ImageIcon nodeIcon;
 	ImageIcon connectionIcon;
+	ImageIcon rotateIcon;
 	
 	JButton selectModeButton;
 	JButton nodeDrawModeButton;
 	JButton connectionDrawModeButton;
+	JButton rotateModeButton;
 	
 	NetworkViewContainer(NetworkView networkView)
 	{
@@ -63,16 +66,18 @@ public class NetworkViewContainer extends JPanel
 		
 		
 		//Set up left button pallete
-		JPanel buttonPanel = new JPanel(new GridLayout(3,1));
+		JPanel buttonPanel = new JPanel(new GridLayout(4,1));
 		ButtonGroup buttonGroup = new ButtonGroup();
 		
 		selectIcon = new ImageIcon(getClass().getResource("/icons/selectionIcon.png"));
 		nodeIcon = new ImageIcon(getClass().getResource("/icons/nodeIcon.png"));
 		connectionIcon = new ImageIcon(getClass().getResource("/icons/connectionIcon.png"));
+		rotateIcon = new ImageIcon(getClass().getResource("/icons/rotateIcon.png"));
 		
 		selectModeButton = new JButton(selectIcon);
 		nodeDrawModeButton = new JButton(nodeIcon);
 		connectionDrawModeButton = new JButton(connectionIcon);
+		rotateModeButton = new JButton(rotateIcon);
 		
 		selectModeButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) { selectMode(e); }
@@ -86,12 +91,23 @@ public class NetworkViewContainer extends JPanel
 			public void actionPerformed(ActionEvent e) { connectionDrawMode(e); }
 		});
 		
-		selectModeButton.setPreferredSize(new Dimension(80,80));
-		selectModeButton.setMinimumSize(new Dimension(80,80));
-		nodeDrawModeButton.setPreferredSize(new Dimension(80,80));
-		nodeDrawModeButton.setMinimumSize(new Dimension(80,80));
-		connectionDrawModeButton.setPreferredSize(new Dimension(80,80));
-		connectionDrawModeButton.setMinimumSize(new Dimension(80,80));
+		rotateModeButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) { rotateMode(e); }
+		});
+		
+		Dimension d = new Dimension(87,87);
+		selectModeButton.setPreferredSize(d);
+		selectModeButton.setMinimumSize(d);
+		selectModeButton.setMaximumSize(d);
+		nodeDrawModeButton.setPreferredSize(d);
+		nodeDrawModeButton.setMinimumSize(d);
+		nodeDrawModeButton.setMaximumSize(d);
+		connectionDrawModeButton.setPreferredSize(d);
+		connectionDrawModeButton.setMinimumSize(d);
+		connectionDrawModeButton.setMaximumSize(d);
+		rotateModeButton.setPreferredSize(d);
+		rotateModeButton.setMinimumSize(d);
+		rotateModeButton.setMaximumSize(d);
 
 		selectModeButton.doClick();
 		
@@ -101,14 +117,17 @@ public class NetworkViewContainer extends JPanel
 		buttonPanel.add(selectModeButton);
 		buttonPanel.add(nodeDrawModeButton);
 		buttonPanel.add(connectionDrawModeButton);
+		buttonPanel.add(rotateModeButton);
 		
 		JPanel west = new JPanel(new GridLayout(0,1));
 		GridBagConstraints gbc = new GridBagConstraints();
         gbc.anchor = GridBagConstraints.NORTH;
         gbc.weighty = 1;
-        		
+        
+        JPanel spacer = new JPanel();
+        spacer.setMinimumSize(new Dimension(0,0));
 		west.add(buttonPanel, gbc);
-		west.add(new JPanel());
+//		west.add(spacer);
 		west.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 		
 		
@@ -167,6 +186,7 @@ public class NetworkViewContainer extends JPanel
 		selectModeButton.setEnabled(false);
 		nodeDrawModeButton.setEnabled(true);
 		connectionDrawModeButton.setEnabled(true);
+		rotateModeButton.setEnabled(true);
 		
 		networkView.setMode(Mode.SELECT);
 		networkView.requestFocusInWindow();
@@ -177,6 +197,7 @@ public class NetworkViewContainer extends JPanel
 		nodeDrawModeButton.setEnabled(false);
 		selectModeButton.setEnabled(true);
 		connectionDrawModeButton.setEnabled(true);
+		rotateModeButton.setEnabled(true);
 		
 		networkView.setMode(Mode.NODE);
 		networkView.requestFocusInWindow();
@@ -187,8 +208,20 @@ public class NetworkViewContainer extends JPanel
 		connectionDrawModeButton.setEnabled(false);
 		nodeDrawModeButton.setEnabled(true);
 		selectModeButton.setEnabled(true);
+		rotateModeButton.setEnabled(true);
 		
 		networkView.setMode(Mode.CONNECTION);
+		networkView.requestFocusInWindow();
+	}
+	
+	public void rotateMode(ActionEvent e)
+	{
+		selectModeButton.setEnabled(true);
+		connectionDrawModeButton.setEnabled(true);
+		nodeDrawModeButton.setEnabled(true);
+		rotateModeButton.setEnabled(false);
+		
+		networkView.setMode(Mode.ROTATE);
 		networkView.requestFocusInWindow();
 	}
 	

@@ -1,4 +1,4 @@
-package p4_multi_views_widgits;
+package p5_transformations;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -10,11 +10,11 @@ import java.util.HashMap;
 
 import javax.swing.*;
 
-import p4_multi_views_widgits.NetworkConnection.Side;
+import p5_transformations.NetworkConnection.Side;
 
 public class NetworkView extends JPanel implements MouseListener, MouseMotionListener, KeyListener, NetworkListener
 {
-	public enum Mode {SELECT, NODE, CONNECTION};
+	public enum Mode {SELECT, NODE, CONNECTION, ROTATE};
 	private Mode mode;
 	
 	private NetworkModel networkModel;
