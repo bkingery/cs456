@@ -2,6 +2,7 @@ package p5_transformations;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.CubicCurve2D;
 import java.io.File;
 import java.io.IOException;
@@ -32,6 +33,10 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 	private Point connectionPrompt;
 	private CubicCurve2D tmpConnection;
 	
+	private Point transformCenter;
+	private Point transformStart;
+	private Point transformEnd;
+	
 	private double[][] bezierMatrix = { {-1,  3, -3, 1},
 										{ 3, -6,  3, 0},
 										{-3,  3,  0, 0},
@@ -48,6 +53,9 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		startConnection = null;
 		connectionPrompt = null;
 		tmpConnection = null;
+		transformCenter = null;
+		transformStart = null;
+		transformEnd = null;
 		
 		clearCurSelections();
 		
@@ -61,6 +69,16 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 	public void setMode(Mode m)
 	{
 		this.mode = m;
+		if (m == Mode.ROTATE)
+		{
+			if (transformCenter == null)
+			{
+				Point p = new Point();
+				p.setLocation(this.getSize().getWidth()/2, this.getSize().getHeight()/2);
+				transformCenter = p;
+			}
+		}
+		this.repaint();
 	}
 	
 	/**
@@ -211,10 +229,93 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 	public void paint(Graphics g)
     {
 		super.paint(g);
+		
+		Graphics2D g2 = (Graphics2D) g;
+		AffineTransform original = g2.getTransform();
+		
+		if (canTransform())
+		{
+//			AffineTransform rotate = getRotationTransform();
+//			AffineTransform back = new AffineTransform();
+//			back.translate(transformCenter.getX(), transformCenter.getY());
+//			rotate.concatenate(back);
+//			AffineTransform toCenter = new AffineTransform();
+//			toCenter.concatenate(rotate);
+//			toCenter.translate(-transformCenter.getX(), -transformCenter.getY());
+			
+			AffineTransform toCenter = new AffineTransform();
+			toCenter.translate(transformCenter.getX(), transformCenter.getY());
+			toCenter.concatenate(getRotationTransform());
+			toCenter.translate(-transformCenter.getX(), -transformCenter.getY());
+			
+			g2.transform(toCenter);
+		}
+		
         g.setFont(font);
-        drawConnections(g);
-        drawNodes(g);
+        drawConnections(g2);
+        drawNodes(g2);
+        drawTransformCenter(g2);
+        
+        g2.setTransform(original);
     }
+	
+	private double getHypotenuse(Point center, Point other)
+	{
+		return Math.sqrt(Math.pow(other.getX()-center.getX(),2) + Math.pow(other.getY()-center.y,2));
+	}
+	
+	private double getSine(Point center, Point other)
+	{
+		double H = getHypotenuse(center, other);
+		return (other.getY() - center.getY()) / H;
+	}
+	
+	private double getCosine(Point center, Point other)
+	{
+		double H = getHypotenuse(center, other);
+		return (other.getX() - center.getX()) / H;
+	}
+	
+	private AffineTransform getRotationTransform()
+	{
+		AffineTransform at = new AffineTransform();
+		
+		System.out.println(transformCenter+", "+transformStart+", "+transformEnd);
+		if (canTransform())
+		{
+			double sinS = getSine(transformCenter, transformStart);
+			double cosS = getCosine(transformCenter, transformStart);
+			double sinE = getSine(transformCenter, transformEnd);
+			double cosE = getCosine(transformCenter, transformEnd);
+			
+			at.rotate(cosS, -sinS);
+			at.rotate(cosE, sinE);
+		}
+		
+		return at;
+	}
+
+	private boolean canTransform() 
+	{
+		return transformCenter != null && transformStart != null && transformEnd != null;
+	}
+
+	private void drawTransformCenter(Graphics2D g) 
+	{
+		if (this.mode == Mode.ROTATE)
+		{
+			g.setColor(Color.RED);
+			Point p = transformCenter;
+//			if(transformCenter != null)
+//				p.setLocation(transformCenter.getX(), transformCenter.getY());
+//	        else
+//	        	p.setLocation(this.getSize().getWidth()/2, this.getSize().getHeight()/2);
+			
+	        g.drawOval(p.x-4, p.y-4, 8, 8);
+	        g.drawLine(p.x, p.y-8, p.x, p.y+8);
+	        g.drawLine(p.x-4, p.y, p.x+4, p.y);
+		}
+	}
 
 	private int getNodeWidth(int textWidth)
 	{
@@ -246,7 +347,7 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		return text;
 	}
 	
-	private void drawNodes(Graphics g) 
+	private void drawNodes(Graphics2D g) 
 	{
 		for (int i=0; i<this.networkModel.nNodes(); i++)
         {
@@ -384,10 +485,8 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 	 * Draws all of the connections in networkModel
 	 * @param g Graphics object
 	 */
-	private void drawConnections(Graphics g) 
+	private void drawConnections(Graphics2D g) 
 	{
-		Graphics2D g2 = (Graphics2D) g;
-		
 		for (int i=0; i<this.networkModel.nConnections(); i++)
         {
 			//Determine if connection should be highlighted
@@ -409,15 +508,15 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
         		Point c1 = calculateCurveControlPoint(p1, s1, distance);
         		Point c2 = calculateCurveControlPoint(p2, s2, distance);
         		CubicCurve2D curve = new CubicCurve2D.Double(p1.x, p1.y, c1.x, c1.y, c2.x, c2.y, p2.x, p2.y);
-        		g2.draw(curve);
+        		g.draw(curve);
 //        		g.drawLine(p1.x, p1.y, p2.x, p2.y);
         	}
         }
 		
 		if (tmpConnection != null)
-			g2.draw(this.tmpConnection);
+			g.draw(this.tmpConnection);
 		if (connectionPrompt != null)
-			g2.drawRect(connectionPrompt.x, connectionPrompt.y, 16, 16);
+			g.drawRect(connectionPrompt.x, connectionPrompt.y, 16, 16);
 	}
 	
 	private double[][] computeCoefficientMatrix(double[][] geo)
@@ -804,6 +903,29 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		}
 	}
 	
+	public void setRotationCenter(Point p)
+	{
+		transformCenter = p;
+		this.repaint();
+	}
+	
+	private void startTransform(Point p) 
+	{
+		transformStart = p;
+		
+	}
+	
+	private void midTransform(Point p) 
+	{
+		//TODO
+	}
+	
+	private void endTransform(Point p) 
+	{
+		transformEnd = p;
+		this.repaint();
+	}
+	
 	//********************************************************
 	// Network Listener
 	//********************************************************
@@ -855,12 +977,17 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 			endConnection(p);
 			break;
 		}
+		case ROTATE:
+		{
+			endTransform(p);
+			break;
+		}
 		default:
 			break;
 		}
 		
 	}
-	
+
 	@Override
 	public void mousePressed(MouseEvent e) 
 	{
@@ -878,6 +1005,11 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 			startConnection(p);
 			break;
 		}
+		case ROTATE:
+		{
+			startTransform(p);
+			break;
+		}
 		default:
 			break;
 		}
@@ -887,13 +1019,21 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 	@Override
 	public void mouseClicked(MouseEvent e) 
 	{
+		Point p = e.getPoint();
 		switch (mode)
 		{
 		case NODE:
 		{
-			Point p = e.getPoint();
 			createNode(p);
 			makeSelection(p);
+			break;
+		}
+		case ROTATE:
+		{
+			if(e.getClickCount() == 2)
+				System.out.println("Double click");
+			else
+				setRotationCenter(p);
 			break;
 		}
 		default:
@@ -934,6 +1074,11 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 				snapToConnectionPoint(p);
 				midConnection(p);
 			}
+			break;
+		}
+		case ROTATE:
+		{
+			endTransform(p);
 			break;
 		}
 		default:
