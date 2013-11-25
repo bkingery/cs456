@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.CubicCurve2D;
+import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.IOException;
@@ -269,9 +270,27 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		{	
 			toCenter.translate(transformCenter.getX(), transformCenter.getY());
 			toCenter.concatenate(getRotationTransform());
+			toCenter.concatenate(getScaleTransform());
 			toCenter.translate(-transformCenter.getX(), -transformCenter.getY());
 		}
 		return toCenter;
+	}
+	
+	private AffineTransform getScaleTransform()
+	{
+		AffineTransform at = new AffineTransform();
+		
+		if (canTransform())
+		{
+//			double s = getHypotenuse(transformCenter, transformEnd)/getHypotenuse(transformCenter, transformStart);
+			double s = 1;
+			if (Math.abs(transformEnd.getX() - transformStart.getX()) > Math.abs(transformEnd.getY() - transformStart.getY()))
+				s = (transformEnd.getX() - transformCenter.getX()) / (transformStart.getX() - transformCenter.getX());
+			else
+				s = (transformEnd.getY() - transformCenter.getY()) / (transformStart.getY() - transformCenter.getY());
+			at.scale(s,s);
+		}
+		return at;
 	}
 	
 	private double getHypotenuse(Point2D center, Point2D other)
@@ -983,6 +1002,11 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		{
 		case SELECT:
 		{
+			try {
+				p = getCurrentTransformation().inverseTransform(p, null);
+			} catch (NoninvertibleTransformException e1) {
+				e1.printStackTrace();
+			}
 			GeometryDescriptor g = pointGeometry(p);
 			if (g.getNodeIndex() >=0)
 			{
@@ -1002,6 +1026,11 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		}
 		case CONNECTION:
 		{
+			try {
+				p = getCurrentTransformation().inverseTransform(p, null);
+			} catch (NoninvertibleTransformException e1) {
+				e1.printStackTrace();
+			}
 			makeSelection(p);
 			endConnection(p);
 			break;
@@ -1025,11 +1054,21 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		{
 		case SELECT:
 		{
+			try {
+				p = getCurrentTransformation().inverseTransform(p, null);
+			} catch (NoninvertibleTransformException e1) {
+				e1.printStackTrace();
+			}
 			makeSelection(p);
 			break;
 		}
 		case CONNECTION:
 		{
+			try {
+				p = getCurrentTransformation().inverseTransform(p, null);
+			} catch (NoninvertibleTransformException e1) {
+				e1.printStackTrace();
+			}
 			makeSelection(p);
 			startConnection(p);
 			break;
@@ -1053,6 +1092,11 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		{
 		case NODE:
 		{
+			try {
+				p = getCurrentTransformation().inverseTransform(p, null);
+			} catch (NoninvertibleTransformException e1) {
+				e1.printStackTrace();
+			}
 			createNode(p);
 			makeSelection(p);
 			break;
@@ -1093,11 +1137,21 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		{
 		case SELECT:
 		{
+			try {
+				p = getCurrentTransformation().inverseTransform(p, null);
+			} catch (NoninvertibleTransformException e1) {
+				e1.printStackTrace();
+			}
 			changeCurNodePosition(p);
 			break;
 		}
 		case CONNECTION:
 		{
+			try {
+				p = getCurrentTransformation().inverseTransform(p, null);
+			} catch (NoninvertibleTransformException e1) {
+				e1.printStackTrace();
+			}
 			if(startConnection != null)
 			{
 				snapToConnectionPoint(p);
@@ -1124,6 +1178,11 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		{
 		case CONNECTION:
 		{
+			try {
+				p = getCurrentTransformation().inverseTransform(p, null);
+			} catch (NoninvertibleTransformException e1) {
+				e1.printStackTrace();
+			}
 			snapToConnectionPoint(p);
 			break;
 		}
