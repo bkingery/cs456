@@ -1,4 +1,4 @@
-package p5_transformations;
+package p6_undo_redo;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -13,7 +13,7 @@ import java.util.HashMap;
 
 import javax.swing.*;
 
-import p5_transformations.NetworkConnection.Side;
+import p6_undo_redo.NetworkConnection.Side;
 
 public class NetworkView extends JPanel implements MouseListener, MouseMotionListener, KeyListener, NetworkListener
 {
