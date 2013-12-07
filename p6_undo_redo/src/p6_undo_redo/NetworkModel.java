@@ -18,6 +18,9 @@ public class NetworkModel
 	
 	private ArrayList<NetworkListener> listeners = new ArrayList<NetworkListener>();
 	
+	private Stack<NetworkCommand> undoStack = new Stack<NetworkCommand>();
+	private Stack<NetworkCommand> redoStack = new Stack<NetworkCommand>();
+	
 	/**
 	 * Creates an empty network model that has a unique default file name and no contents
 	 * @throws UnsupportedEncodingException 
@@ -41,9 +44,10 @@ public class NetworkModel
 	{
 		setFileName(fileName);
 		parseFile(fileName);
+		clearCommandStack();
 		this.unsavedChanges = false;
 	}
-	
+
 	/**
 	 * Parses a Network Model description file
 	 * @param fileName
@@ -74,7 +78,7 @@ public class NetworkModel
 		double xCenter	= Double.parseDouble(coordinates[1]);
 		double yCenter = Double.parseDouble(coordinates[2]);
 		NetworkNode n = new NetworkNode(nodeName, xCenter, yCenter);
-		this.addNode(n);
+		this.newNode(n);
 	}
 	
 	private void parseNetworkConnection(String line)
@@ -86,6 +90,35 @@ public class NetworkModel
 		Side side2 = Side.valueOf(tokens[4].trim());
 		NetworkConnection c = new NetworkConnection(node1, side1, node2, side2);
 		this.addConnection(c);
+	}
+	
+	private void clearCommandStack() 
+	{
+		this.undoStack.clear();
+	}
+	
+	public boolean canUndo()
+	{
+		return this.undoStack.size() > 0;
+	}
+	
+	public boolean canRedo()
+	{
+		return this.redoStack.size() > 0;
+	}
+	
+	public void undo()
+	{
+		NetworkCommand c = undoStack.pop();
+		c.undo();
+		redoStack.push(c);
+	}
+	
+	public void redo()
+	{
+		NetworkCommand c = redoStack.pop();
+		c.doit();
+		undoStack.push(c);
 	}
 	
 	/**
@@ -150,12 +183,30 @@ public class NetworkModel
 	 * Adds the specified NetworkNode to the list of network objects
 	 * @param newNode
 	 */
-	public void addNode(NetworkNode newNode)
+	public void newNode(NetworkNode newNode)
 	{
-		newNode.setNetwork(this);
-		this.nodeList.add(newNode);
-		this.unsavedChanges = true;
-		this.nodeChanged(newNode);
+		NetworkCommand c = new NewNodeCommand(newNode, this);
+		c.doit();
+		undoStack.push(c);
+	}
+	
+	public void changeNodeName(NetworkNode n, String name)
+	{
+		NetworkCommand c = new ChangeNodeNameCommand(n, name);
+		c.doit();
+		undoStack.push(c);
+	}
+	
+	public void changeNodePosition(NetworkNode n, double x, double y)
+	{
+		NetworkCommand c = new ChangeNodePositionCommand(n, x, y);
+		c.doit();
+		undoStack.push(c);
+	}
+	
+	public void addNodeToList(NetworkNode node)
+	{
+		this.nodeList.add(node);
 	}
 
 	/**
@@ -173,6 +224,11 @@ public class NetworkModel
 	public NetworkNode getNode(int i)
 	{
 		return this.nodeList.get(i);
+	}
+	
+	public int getNodeIndex(NetworkNode n)
+	{
+		return this.nodeList.indexOf(n);
 	}
 	
 	/**
@@ -199,7 +255,12 @@ public class NetworkModel
 	public void removeNode(int i)
 	{
 		NetworkNode n = this.nodeList.remove(i);
-		
+		removeNodesConnections(n);
+		nodeChanged(n);
+	}
+
+	private void removeNodesConnections(NetworkNode n) 
+	{
 		for (int x=0; x<this.conList.size(); x++)
 		{
 			NetworkConnection c = this.conList.get(x);
@@ -208,8 +269,11 @@ public class NetworkModel
 				removeConnection(x);
 			}
 		}
-		
-		this.unsavedChanges = true;
+	}
+	
+	public void removeNode(NetworkNode n)
+	{
+		removeNode(this.nodeList.indexOf(n));
 	}
 	
 	/**
@@ -415,7 +479,7 @@ public class NetworkModel
 			result = false;
 		}
 		NetworkNode n = new NetworkNode("test", 0, 0);
-		nm1.addNode(n);
+		nm1.newNode(n);
 		if (!nm1.unsavedChanges())
 		{
 			System.out.println("Failed: unsavedChanges");
@@ -431,8 +495,8 @@ public class NetworkModel
 		NetworkModel nm1 = new NetworkModel();
 		NetworkNode n1 = new NetworkNode("test1", 0,0);
 		NetworkNode n2 = new NetworkNode("test2", 10,10);
-		nm1.addNode(n1);
-		nm1.addNode(n2);
+		nm1.newNode(n1);
+		nm1.newNode(n2);
 		if (nm1.nNodes() != 2)
 		{
 			System.out.println("Failed: addNode");
@@ -451,7 +515,7 @@ public class NetworkModel
 			System.out.println("Failed: nNodes");
 			result = false;
 		}
-		nm1.addNode(new NetworkNode("test1", 0,0));
+		nm1.newNode(new NetworkNode("test1", 0,0));
 		if (nm1.nNodes() != 4)
 		{
 			System.out.println("Failed: nNodes");
@@ -494,7 +558,7 @@ public class NetworkModel
 	{
 		boolean result = true;
 		NetworkModel nm1 = new NetworkModel("test\\test.txt");
-		nm1.addNode(new NetworkNode("test", 0, 0));
+		nm1.newNode(new NetworkNode("test", 0, 0));
 		nm1.addConnection(new NetworkConnection("test", Side.T, "Central", Side.B));
 		if (nm1.nConnections() != 6)
 		{

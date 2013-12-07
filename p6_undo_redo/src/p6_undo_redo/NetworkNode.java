@@ -48,7 +48,6 @@ public class NetworkNode
 					c.setNode2(newName);
 			}
 			this.nodeName = newName;
-			this.networkModel.nodeChanged(this);
 		}
 		else
 			this.nodeName = newName;
@@ -77,8 +76,6 @@ public class NetworkNode
 	{
 		this.xCenter = xCenter;
 		this.yCenter = yCenter;
-		if (this.networkModel != null)
-			this.networkModel.nodeChanged(this);
 	}
 
 	/**

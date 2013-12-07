@@ -3,18 +3,22 @@ package p6_undo_redo;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 import javax.swing.*;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import p6_undo_redo.NetworkView.Mode;
 
 
-public class NetworkViewContainer extends JPanel
+public class NetworkViewContainer extends JPanel 
 {	
 	NetworkView networkView;
 	final JFileChooser fileChooser;
@@ -25,6 +29,9 @@ public class NetworkViewContainer extends JPanel
 	ImageIcon nodeIcon;
 	ImageIcon connectionIcon;
 	ImageIcon rotateIcon;
+	
+	JMenuItem undo;
+	JMenuItem redo;
 	
 	JButton selectModeButton;
 	JButton nodeDrawModeButton;
@@ -42,10 +49,13 @@ public class NetworkViewContainer extends JPanel
 		//Set up top menu
 		JMenuBar menuBar = new JMenuBar();
 		JMenu file = new JMenu("File");
-		
 		JMenuItem open = new JMenuItem("Open");
 		JMenuItem save = new JMenuItem("Save");
 		JMenuItem saveAs = new JMenuItem("Save As");
+		
+		JMenu edit = new JMenu("Edit");
+		undo = new JMenuItem("Undo");
+		redo = new JMenuItem("Redo");
 		
 		open.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) { open(); }
@@ -59,10 +69,27 @@ public class NetworkViewContainer extends JPanel
 			public void actionPerformed(ActionEvent e) { saveAs(); }
 		});
 		
+		edit.addMenuListener(new MenuListener() {
+			public void menuCanceled(MenuEvent e) { return; }
+			public void menuDeselected(MenuEvent e) { return; }
+			public void menuSelected(MenuEvent e) { editMenu(); }
+		});
+		
+		undo.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) { undo(); }
+		});
+		
+		redo.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) { redo(); }
+		});
+		
 		file.add(open);
 		file.add(save);
 		file.add(saveAs);
+		edit.add(undo);
+		edit.add(redo);
 		menuBar.add(file);
+		menuBar.add(edit);
 		
 		
 		//Set up left button pallete
@@ -179,6 +206,22 @@ public class NetworkViewContainer extends JPanel
 				e.printStackTrace();
 			}
         }
+	}
+	
+	public void editMenu()
+	{
+		undo.setEnabled(networkView.canUndo());
+		redo.setEnabled(networkView.canRedo());
+	}
+	
+	public void undo()
+	{
+		networkView.undo();
+	}
+	
+	public void redo()
+	{
+		networkView.redo();
 	}
 	
 	public void selectMode(ActionEvent e)

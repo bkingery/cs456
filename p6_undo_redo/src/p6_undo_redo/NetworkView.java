@@ -25,6 +25,7 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 	private FontMetrics FM;
 	
 	private int curNode;
+	private Point2D curNodePosition;
 	private int curConnection;
 	private int curCharIndex;
 	
@@ -118,6 +119,26 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		}
 	}
 	
+	public boolean canUndo()
+	{
+		return networkModel.canUndo();
+	}
+	
+	public boolean canRedo()
+	{
+		return networkModel.canRedo();
+	}
+	
+	public void undo()
+	{
+		networkModel.undo();
+	}
+	
+	public void redo()
+	{
+		networkModel.redo();
+	}
+	
 	public NetworkModel getNetworkModel() {
 		return this.networkModel;
 	}
@@ -148,6 +169,14 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 	 */
 	public void setCurNode(int curNode) {
 		this.curNode = curNode;
+		if (curNode >= 0)
+		{
+			NetworkNode n = networkModel.getNode(curNode);
+			this.curNodePosition = new Point();
+			this.curNodePosition.setLocation(n.getX(), n.getY());
+		}
+		else
+			this.curNodePosition = null;
 	}
 	
 	/**
@@ -185,27 +214,23 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 	private Point2D getConnectionPoint(NetworkNode n, Side s)
 	{
 		Point2D p = new Point();
-		int x = 0;
-		int y = 0;
+		double x = (curNodePosition != null && networkModel.getNodeIndex(n) == curNode) ? curNodePosition.getX() : n.getX();
+		double y = (curNodePosition != null && networkModel.getNodeIndex(n) == curNode) ? curNodePosition.getY() : n.getY();
 		int nodeWidth = getNodeWidth(FM.stringWidth(n.getName()));
 		int nodeHeight = getNodeHeight(nodeWidth);
 		switch (s)
 		{
 		case T:
-			x = (int)n.getX();
-			y = (int)n.getY()-(nodeHeight/2);
+			y = y-(nodeHeight/2);
 			break;
 		case B:
-			x = (int)n.getX();
-			y = (int)n.getY()+(nodeHeight/2);
+			y = y+(nodeHeight/2);
 			break;
 		case L:
-			x = (int)n.getX()-(nodeWidth/2);
-			y = (int)n.getY();
+			x = x-(nodeWidth/2);
 			break;
 		case R:
-			x = (int)n.getX()+(nodeWidth/2);
-			y = (int)n.getY();
+			x = x+(nodeWidth/2);
 			break;
 		}
 		p.setLocation(x, y);
@@ -282,11 +307,7 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		
 		if (canTransform())
 		{
-			double s = 1;
-			if (Math.abs(transformEnd.getX() - transformStart.getX()) > Math.abs(transformEnd.getY() - transformStart.getY()))
-				s = (transformEnd.getX() - transformCenter.getX()) / (transformStart.getX() - transformCenter.getX());
-			else
-				s = (transformEnd.getY() - transformCenter.getY()) / (transformStart.getY() - transformCenter.getY());
+			double s = pointDistance(transformEnd, transformCenter) / pointDistance(transformStart, transformCenter);
 			at.scale(s,s);
 		}
 		return at;
@@ -379,15 +400,19 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		for (int i=0; i<this.networkModel.nNodes(); i++)
         {
         	NetworkNode n = this.networkModel.getNode(i);
+        	
+        	double x = (curNodePosition != null && i == getCurNode()) ? curNodePosition.getX() : n.getX();
+        	double y = (curNodePosition != null && i == getCurNode()) ? curNodePosition.getY() : n.getY();
+        	
     		int textWidth = FM.stringWidth(n.getName());
     		int textHeight = FM.getHeight();
-    		int textLeft = (int) (n.getX()-textWidth/2);
-    		int textBase = (int) (n.getY()+(textHeight/4));
+    		int textLeft = (int) (x-textWidth/2);
+    		int textBase = (int) (y+(textHeight/4));
     		
     		int ovalWidth = getNodeWidth(textWidth);
     		int ovalHeight = getNodeHeight(ovalWidth);
     		g.setColor(Color.white);
-    		g.fillOval((int)n.getX()-ovalWidth/2, (int)n.getY()-ovalHeight/2, ovalWidth, ovalHeight);
+    		g.fillOval((int)x-ovalWidth/2, (int)y-ovalHeight/2, ovalWidth, ovalHeight);
     		
     		String text = n.getName();
     		//Determine if Node should be highlighted
@@ -401,7 +426,7 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
     		else
     			g.setColor(Color.black);
     		
-    		g.drawOval((int)n.getX()-ovalWidth/2, (int)n.getY()-ovalHeight/2, ovalWidth, ovalHeight);
+    		g.drawOval((int)x-ovalWidth/2, (int)y-ovalHeight/2, ovalWidth, ovalHeight);
     		g.drawString(text, textLeft, textBase);
         }
 	}
@@ -817,10 +842,21 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		if (this.getCurNode() >= 0)
 		{
 			NetworkNode n = this.networkModel.getNode(getCurNode());
-			double x = (p.getX() < 0) ? 0 : p.getX();
-			double y = (p.getY() < 0) ? 0 : p.getY();
-			n.setLocation(x, y);
+			double x = curNodePosition.getX();
+			double y = curNodePosition.getY();
+			if (n.getX() != x || n.getY() != y)
+				networkModel.changeNodePosition(n, x, y);
+			curNodePosition = null;
 		}
+	}
+	
+	private void midNodeDrag(Point2D p)
+	{
+		double x = (p.getX() < 0) ? 0 : p.getX();
+		double y = (p.getY() < 0) ? 0 : p.getY();
+		curNodePosition = new Point();
+		curNodePosition.setLocation(x,y);
+		repaint();
 	}
 	
 	/**
@@ -831,7 +867,7 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 	private NetworkNode createNode(Point2D p)
 	{
 		NetworkNode n = new NetworkNode("New node", p.getX(), p.getY());
-		networkModel.addNode(n);
+		networkModel.newNode(n);
 		return n;
 	}
 	
@@ -1001,6 +1037,7 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		{
 		case SELECT:
 		{
+			changeCurNodePosition(curNodePosition);
 			try {
 				p = getCurrentTransformation().inverseTransform(p, null);
 			} catch (NoninvertibleTransformException e1) {
@@ -1141,7 +1178,7 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 			} catch (NoninvertibleTransformException e1) {
 				e1.printStackTrace();
 			}
-			changeCurNodePosition(p);
+			midNodeDrag(p);
 			break;
 		}
 		case CONNECTION:
@@ -1214,9 +1251,10 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 				int charIndex = getCurCharIndex();
 				charIndex = (charIndex-1 <= 0) ? 0 : charIndex-1;
 				setCurCharIndex(charIndex);
-				n.setName(newName);
+				networkModel.changeNodeName(n, newName);
 				break;
 			}
+			case KeyEvent.VK_SHIFT:
 			case KeyEvent.VK_DOWN:
 			case KeyEvent.VK_UP:
 				break;
@@ -1230,7 +1268,7 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 			{
 				String newName = insertCharAt(n.getName(), e.getKeyChar(), getCurCharIndex());
 				setCurCharIndex(getCurCharIndex()+1);
-				n.setName(newName);
+				networkModel.changeNodeName(n, newName);
 				break;
 			}
 			}
