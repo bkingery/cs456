@@ -1,7 +1,7 @@
 package p6_undo_redo;
 
+import java.awt.geom.AffineTransform;
 import java.io.*;
-import java.net.URL;
 import java.util.*;
 
 import p6_undo_redo.NetworkConnection.Side;
@@ -18,6 +18,8 @@ public class NetworkModel
 	
 	private ArrayList<NetworkListener> listeners = new ArrayList<NetworkListener>();
 	
+	private Stack<AffineTransform> transformations;
+	
 	private Stack<NetworkCommand> undoStack = new Stack<NetworkCommand>();
 	private Stack<NetworkCommand> redoStack = new Stack<NetworkCommand>();
 	
@@ -30,6 +32,7 @@ public class NetworkModel
 	{
 		long timestamp = System.currentTimeMillis()/1000;
 		setFileName("defaultNetwork_"+timestamp+".network");
+		transformations = new Stack<AffineTransform>();
 		save();
 	}
 	
@@ -45,6 +48,7 @@ public class NetworkModel
 		setFileName(fileName);
 		parseFile(fileName);
 		clearCommandStack();
+		transformations = new Stack<AffineTransform>();
 		this.unsavedChanges = false;
 	}
 
@@ -90,6 +94,49 @@ public class NetworkModel
 		Side side2 = Side.valueOf(tokens[4].trim());
 		NetworkConnection c = new NetworkConnection(node1, side1, node2, side2);
 		this.addConnection(c);
+	}
+	
+	
+	public AffineTransform getCurrentTransformation(AffineTransform midTransform) 
+	{
+		AffineTransform at = new AffineTransform();
+		at.concatenate(midTransform);
+		for (int i=transformations.size()-1; i>=0; i--)
+		{
+			at.concatenate(transformations.get(i));
+		}
+		return at;
+	}
+	
+	public void addTransformation(AffineTransform at)
+	{
+		NetworkCommand c = new NewTransformationCommand(at, this);
+		c.doit();
+		undoStack.push(c);
+		redoStack.clear();
+	}
+	
+	public void addTransformationToList(AffineTransform at)
+	{
+		this.transformations.push(at);
+	}
+	
+	public void removeTransformation(AffineTransform at)
+	{
+		this.transformations.remove(at);
+	}
+	
+	public void clearTransformations()
+	{
+		NetworkCommand c = new ClearTransformsCommand(transformations, this);
+		c.doit();
+		undoStack.push(c);
+		redoStack.clear();
+	}
+	
+	public void clearTransformationList()
+	{
+		this.transformations.clear();
 	}
 	
 	private void clearCommandStack() 
@@ -188,6 +235,7 @@ public class NetworkModel
 		NetworkCommand c = new NewNodeCommand(newNode, this);
 		c.doit();
 		undoStack.push(c);
+		redoStack.clear();
 	}
 	
 	public void changeNodeName(NetworkNode n, String name)
@@ -195,6 +243,7 @@ public class NetworkModel
 		NetworkCommand c = new ChangeNodeNameCommand(n, name);
 		c.doit();
 		undoStack.push(c);
+		redoStack.clear();
 	}
 	
 	public void changeNodePosition(NetworkNode n, double x, double y)
@@ -202,6 +251,7 @@ public class NetworkModel
 		NetworkCommand c = new ChangeNodePositionCommand(n, x, y);
 		c.doit();
 		undoStack.push(c);
+		redoStack.clear();
 	}
 	
 	public void addNodeToList(NetworkNode node)
@@ -282,10 +332,15 @@ public class NetworkModel
 	 */
 	public void addConnection(NetworkConnection newConnection)
 	{
-		this.conList.add(newConnection);
-		this.unsavedChanges = true;
-		this.connectionChanged(newConnection);
-		this.unsavedChanges = true;
+		NetworkCommand c = new NewConnectionCommand(newConnection, this);
+		c.doit();
+		undoStack.push(c);
+		redoStack.clear();
+	}
+	
+	public void addConnectionToList(NetworkConnection c)
+	{
+		this.conList.add(c);
 	}
 	
 	/**
@@ -312,9 +367,12 @@ public class NetworkModel
 	public void removeConnection(int i)
 	{
 		NetworkConnection c =this.conList.remove(i);
-		this.unsavedChanges = true;
-		
 		connectionChanged(c);
+	}
+	
+	public void removeConnection(NetworkConnection c)
+	{
+		removeConnection(this.conList.indexOf(c));
 	}
 
 	/**
@@ -352,11 +410,18 @@ public class NetworkModel
 		}
 	}
 	
-	private void connectionChanged(NetworkConnection c) 
+	public void connectionChanged(NetworkConnection c) 
 	{
 		this.unsavedChanges = true;
 		for (int i=0; i<this.listeners.size(); i++)
 			listeners.get(i).connectionChanged(c);
+	}
+	
+	public void transformChanged()
+	{
+		this.unsavedChanges = true;
+		for (int i=0; i<this.listeners.size(); i++)
+			listeners.get(i).transformChanged();
 	}
 	
 	//************************************************************************

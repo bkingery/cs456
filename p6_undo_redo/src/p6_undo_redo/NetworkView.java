@@ -6,10 +6,8 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.CubicCurve2D;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import javax.swing.*;
 
@@ -40,7 +38,6 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 	private Point2D transformStart;
 	private Point2D transformEnd;
 	
-	private ArrayList<AffineTransform> transformations;
 	private AffineTransform midTransform;
 	
 	private double[][] bezierMatrix = { {-1,  3, -3, 1},
@@ -64,7 +61,7 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		transformStart = null;
 		transformEnd = null;
 		midTransform = new AffineTransform();
-		transformations = new ArrayList<AffineTransform>();
+		
 		
 		clearCurSelections();
 		
@@ -265,7 +262,7 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		Graphics2D g2 = (Graphics2D) g;
 		AffineTransform original = g2.getTransform();
 		
-		AffineTransform at = getCurrentTransformation();
+		AffineTransform at = networkModel.getCurrentTransformation(midTransform);
 		
 		g2.transform(at);
 		
@@ -277,22 +274,12 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
         drawTransformCenter(g2);
     }
 
-	private AffineTransform getCurrentTransformation() 
-	{
-		AffineTransform at = new AffineTransform();
-		at.concatenate(midTransform);
-		for (int i=transformations.size()-1; i>=0; i--)
-		{
-			at.concatenate(transformations.get(i));
-		}
-		return at;
-	}
-
 	private AffineTransform createNewTransformation() 
 	{
-		AffineTransform toCenter = new AffineTransform();
+		AffineTransform toCenter = null;
 		if (canTransform())
 		{	
+			toCenter = new AffineTransform();
 			toCenter.translate(transformCenter.getX(), transformCenter.getY());
 			toCenter.concatenate(getRotationTransform());
 			toCenter.concatenate(getScaleTransform());
@@ -350,7 +337,10 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 
 	private boolean canTransform() 
 	{
-		return transformCenter != null && transformStart != null && transformEnd != null;
+		boolean result = transformCenter != null && transformStart != null && transformEnd != null;
+		result &= transformStart.getX() != transformEnd.getX() || transformStart.getY() != transformEnd.getY(); 
+		
+		return result;
 	}
 
 	private void drawTransformCenter(Graphics2D g) 
@@ -995,18 +985,22 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 	{
 		transformEnd = p;
 		this.midTransform.setToIdentity();
-		this.transformations.add(this.createNewTransformation());
-		this.repaint();
+		AffineTransform at = createNewTransformation();
+		if (at != null)
+		{
+			networkModel.addTransformation(at);
+//			this.repaint();
+		}
 	}
 	
 	private void clearTransformations()
 	{
-		this.transformations.clear();
+		this.networkModel.clearTransformations();
 		this.midTransform.setToIdentity();
 		this.transformCenter.setLocation(this.getSize().getWidth()/2, this.getSize().getHeight()/2);
 		this.transformStart = null;
 		this.transformEnd = null;
-		this.repaint();
+//		this.repaint();
 	}
 	
 	//********************************************************
@@ -1021,6 +1015,12 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 	
 	@Override
 	public void connectionChanged(NetworkConnection c) 
+	{
+		this.repaint();
+	}
+	
+	@Override
+	public void transformChanged()
 	{
 		this.repaint();
 	}
@@ -1039,7 +1039,7 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		{
 			changeCurNodePosition(curNodePosition);
 			try {
-				p = getCurrentTransformation().inverseTransform(p, null);
+				p = networkModel.getCurrentTransformation(midTransform).inverseTransform(p, null);
 			} catch (NoninvertibleTransformException e1) {
 				e1.printStackTrace();
 			}
@@ -1063,7 +1063,7 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		case CONNECTION:
 		{
 			try {
-				p = getCurrentTransformation().inverseTransform(p, null);
+				p = networkModel.getCurrentTransformation(midTransform).inverseTransform(p, null);
 			} catch (NoninvertibleTransformException e1) {
 				e1.printStackTrace();
 			}
@@ -1091,7 +1091,7 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		case SELECT:
 		{
 			try {
-				p = getCurrentTransformation().inverseTransform(p, null);
+				p = networkModel.getCurrentTransformation(midTransform).inverseTransform(p, null);
 			} catch (NoninvertibleTransformException e1) {
 				e1.printStackTrace();
 			}
@@ -1101,7 +1101,7 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		case CONNECTION:
 		{
 			try {
-				p = getCurrentTransformation().inverseTransform(p, null);
+				p = networkModel.getCurrentTransformation(midTransform).inverseTransform(p, null);
 			} catch (NoninvertibleTransformException e1) {
 				e1.printStackTrace();
 			}
@@ -1129,7 +1129,7 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		case NODE:
 		{
 			try {
-				p = getCurrentTransformation().inverseTransform(p, null);
+				p = networkModel.getCurrentTransformation(midTransform).inverseTransform(p, null);
 			} catch (NoninvertibleTransformException e1) {
 				e1.printStackTrace();
 			}
@@ -1174,7 +1174,7 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		case SELECT:
 		{
 			try {
-				p = getCurrentTransformation().inverseTransform(p, null);
+				p = networkModel.getCurrentTransformation(midTransform).inverseTransform(p, null);
 			} catch (NoninvertibleTransformException e1) {
 				e1.printStackTrace();
 			}
@@ -1184,7 +1184,7 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		case CONNECTION:
 		{
 			try {
-				p = getCurrentTransformation().inverseTransform(p, null);
+				p = networkModel.getCurrentTransformation(midTransform).inverseTransform(p, null);
 			} catch (NoninvertibleTransformException e1) {
 				e1.printStackTrace();
 			}
@@ -1215,7 +1215,7 @@ public class NetworkView extends JPanel implements MouseListener, MouseMotionLis
 		case CONNECTION:
 		{
 			try {
-				p = getCurrentTransformation().inverseTransform(p, null);
+				p = networkModel.getCurrentTransformation(midTransform).inverseTransform(p, null);
 			} catch (NoninvertibleTransformException e1) {
 				e1.printStackTrace();
 			}
